@@ -14,6 +14,8 @@ allwatch - micro-superviseur de processus pour Linux
 
 **allwatch** **--diagnose** [*CONFIGURATION*]
 
+**allwatch** **--help**
+
 # DESCRIPTION
 
 **allwatch** est un petit superviseur de processus écrit en Bash. Il lance
@@ -32,6 +34,10 @@ La configuration est lue une fois au démarrage. Le fichier par défaut est
 
 **--version**
 :   Afficher `allwatch 0.1.0` et sortir avec le code `0`.
+
+**--help**
+:   Afficher le synopsis, les options, les variables d'environnement et le
+    renvoi vers cette page de manuel, puis sortir avec le code `0`.
 
 **--diagnose** [*CONFIGURATION*]
 :   Lire la configuration, afficher la version, le chemin de la configuration,
@@ -243,8 +249,8 @@ Commandes utiles :
 # CODE DE SORTIE
 
 **0**
-:   Renvoyé par `--version` et par un `--diagnose` réussi. La boucle de
-    supervision ne se termine pas d'elle-même : elle s'exécute jusqu'à
+:   Renvoyé par `--version`, `--help` et par un `--diagnose` réussi. La boucle
+    de supervision ne se termine pas d'elle-même : elle s'exécute jusqu'à
     `SIGINT` ou `SIGTERM` et ne renvoie donc pas `0` en fonctionnement normal.
 
 **1**
@@ -268,10 +274,11 @@ Lancer le superviseur avec la configuration d'exemple du dépôt de code :
 
     ./allwatch.sh allwatch.conf
 
-Afficher la version du programme et inspecter une configuration sans la
-lancer :
+Afficher la version du programme, le résumé de l'aide et inspecter une
+configuration sans la lancer :
 
     ./allwatch.sh --version
+    ./allwatch.sh --help
     ./allwatch.sh --diagnose allwatch.conf
 
 Configuration avec une cible :
@@ -335,10 +342,8 @@ l'utilisateur du service :
 - Avec quatre cibles ou plus qui utilisent chacune les 5 secondes de délai de
   grâce, un arrêt propre peut dépasser le `TimeoutStopSec` de 20 secondes du
   service ; systemd tue alors tout le groupe de processus.
-- `--help` n'est pas implémenté. Il est lu comme un nom de fichier de
-  configuration et sort avec le code `1` et une erreur de configuration ; la
-  page de manuel est la référence.
-- `--version` et `--diagnose` ne sont reconnus qu'en première position.
+- `--help` affiche le résumé et sort avec le code `0` ; les options ne sont
+  reconnues qu'en première position.
 - `--diagnose` contrôle la configuration et les chemins ; il ne lance ni ne
   sonde aucune cible, donc il ne prouve pas qu'une cible est saine.
 - La configuration est une entrée de confiance : les commandes des cibles

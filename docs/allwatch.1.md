@@ -14,6 +14,8 @@ allwatch - tiny process supervisor for Linux
 
 **allwatch** **--diagnose** [*CONFIGURATION*]
 
+**allwatch** **--help**
+
 # DESCRIPTION
 
 **allwatch** is a small process supervisor written in Bash. It starts each
@@ -32,6 +34,10 @@ the current directory; the first argument replaces it.
 
 **--version**
 :   Print `allwatch 0.1.0` and exit `0`.
+
+**--help**
+:   Print the synopsis, the options, the environment variables and a pointer
+    to this manual page, then exit `0`.
 
 **--diagnose** [*CONFIGURATION*]
 :   Read the configuration, print the version, the configuration path, the
@@ -239,9 +245,9 @@ Useful commands:
 # EXIT STATUS
 
 **0**
-:   Returned by `--version` and by a successful `--diagnose`. The supervision
-    loop does not terminate on its own: it runs until `SIGINT` or `SIGTERM`
-    and therefore does not return `0` in normal operation.
+:   Returned by `--version`, `--help` and by a successful `--diagnose`. The
+    supervision loop does not terminate on its own: it runs until `SIGINT` or
+    `SIGTERM` and therefore does not return `0` in normal operation.
 
 **1**
 :   The configuration file is unreadable, the runtime directory is not owned
@@ -265,9 +271,11 @@ repository:
 
     ./allwatch.sh allwatch.conf
 
-Print the program version and inspect a configuration without starting it:
+Print the program version, the help summary and inspect a configuration
+without starting it:
 
     ./allwatch.sh --version
+    ./allwatch.sh --help
     ./allwatch.sh --diagnose allwatch.conf
 
 Configuration with one target:
@@ -328,9 +336,8 @@ deliberate stop of a target, create its stop file as the service user:
 - With four or more targets that each use the full 5-second grace period, a
   clean stop can exceed the service's 20-second `TimeoutStopSec`; systemd then
   kills the whole cgroup.
-- `--help` is not implemented. It is read as a configuration file name and
-  exits `1` with a configuration error; the manual page is the reference.
-- `--version` and `--diagnose` are recognized only as the first argument.
+- `--help` prints the summary and exits `0`; the options are recognized only
+  as the first argument.
 - `--diagnose` checks the configuration and paths; it does not start or probe
   a target, so it does not prove that a target is healthy.
 - The configuration is trusted input: target commands run with the privileges

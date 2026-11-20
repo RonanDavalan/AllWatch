@@ -14,6 +14,8 @@ allwatch - kleiner Prozess-Supervisor für Linux
 
 **allwatch** **--diagnose** [*KONFIGURATION*]
 
+**allwatch** **--help**
+
 # BESCHREIBUNG
 
 **allwatch** ist ein kleiner Prozess-Supervisor, geschrieben in Bash. Er
@@ -33,6 +35,10 @@ Die Konfiguration wird beim Start einmal gelesen. Standard ist
 
 **--version**
 :   `allwatch 0.1.0` ausgeben und mit Exit-Code `0` beenden.
+
+**--help**
+:   Übersicht, Optionen, Umgebungsvariablen und den Verweis auf diese
+    Handbuchseite ausgeben und mit Exit-Code `0` beenden.
 
 **--diagnose** [*KONFIGURATION*]
 :   Die Konfiguration lesen, Version, Konfigurationspfad, Zustandsverzeichnis,
@@ -248,9 +254,10 @@ Nützliche Befehle:
 # RÜCKGABEWERT
 
 **0**
-:   Wird von `--version` und einem erfolgreichen `--diagnose` zurückgegeben.
-    Die Überwachungsschleife endet nicht von selbst: Sie läuft bis `SIGINT`
-    oder `SIGTERM` und gibt im Normalbetrieb daher nicht `0` zurück.
+:   Wird von `--version`, `--help` und einem erfolgreichen `--diagnose`
+    zurückgegeben. Die Überwachungsschleife endet nicht von selbst: Sie läuft
+    bis `SIGINT` oder `SIGTERM` und gibt im Normalbetrieb daher nicht `0`
+    zurück.
 
 **1**
 :   Konfigurationsdatei nicht lesbar, Zustandsverzeichnis gehört nicht dem
@@ -274,10 +281,11 @@ Den Supervisor mit der Beispielkonfiguration aus dem Quelltext starten:
 
     ./allwatch.sh allwatch.conf
 
-Die Programmversion ausgeben und eine Konfiguration prüfen, ohne sie zu
-starten:
+Die Programmversion und die Hilfe ausgeben und eine Konfiguration prüfen,
+ohne sie zu starten:
 
     ./allwatch.sh --version
+    ./allwatch.sh --help
     ./allwatch.sh --diagnose allwatch.conf
 
 Konfiguration mit einem Ziel:
@@ -342,10 +350,8 @@ Dienstbenutzer anlegen:
 - Bei vier oder mehr Zielen, die jeweils die vollen 5 Sekunden Gnadenfrist
   nutzen, kann ein sauberes Stoppen das `TimeoutStopSec` von 20 Sekunden des
   Dienstes überschreiten; systemd beendet dann die ganze Prozessgruppe.
-- `--help` ist nicht implementiert. Es wird als Name einer
-  Konfigurationsdatei gelesen und endet mit Exit-Code `1` und einem
-  Konfigurationsfehler; die Handbuchseite ist die Referenz.
-- `--version` und `--diagnose` werden nur als erstes Argument erkannt.
+- `--help` gibt die Übersicht aus und endet mit Exit-Code `0`; die Optionen
+  werden nur als erstes Argument erkannt.
 - `--diagnose` prüft Konfiguration und Pfade; es startet und prüft kein Ziel,
   beweist also nicht, dass ein Ziel gesund ist.
 - Die Konfiguration ist vertrauenswürdige Eingabe: Die Befehle der Ziele

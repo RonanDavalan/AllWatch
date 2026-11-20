@@ -14,6 +14,8 @@ allwatch - pequeño supervisor de procesos para Linux
 
 **allwatch** **--diagnose** [*CONFIGURACIÓN*]
 
+**allwatch** **--help**
+
 # DESCRIPCIÓN
 
 **allwatch** es un pequeño supervisor de procesos escrito en Bash. Inicia
@@ -32,6 +34,10 @@ La configuración se lee una vez, al arrancar. El archivo por defecto es
 
 **--version**
 :   Mostrar `allwatch 0.1.0` y salir con el código `0`.
+
+**--help**
+:   Mostrar el resumen, las opciones, las variables de entorno y la referencia
+    a esta página de manual, y salir con el código `0`.
 
 **--diagnose** [*CONFIGURACIÓN*]
 :   Leer la configuración, mostrar la versión, la ruta de la configuración, el
@@ -243,7 +249,7 @@ Comandos útiles:
 # CÓDIGO DE SALIDA
 
 **0**
-:   Lo devuelven `--version` y un `--diagnose` correcto. El bucle de
+:   Lo devuelven `--version`, `--help` y un `--diagnose` correcto. El bucle de
     supervisión no termina por sí solo: se ejecuta hasta `SIGINT` o `SIGTERM`
     y, por tanto, no devuelve `0` en funcionamiento normal.
 
@@ -268,10 +274,11 @@ Iniciar el supervisor con la configuración de ejemplo del repositorio:
 
     ./allwatch.sh allwatch.conf
 
-Mostrar la versión del programa e inspeccionar una configuración sin
-iniciarla:
+Mostrar la versión y la ayuda del programa e inspeccionar una configuración
+sin iniciarla:
 
     ./allwatch.sh --version
+    ./allwatch.sh --help
     ./allwatch.sh --diagnose allwatch.conf
 
 Configuración con un objetivo:
@@ -334,10 +341,8 @@ servicio:
 - Con cuatro o más objetivos que usen cada uno los 5 segundos completos de
   plazo de gracia, una parada limpia puede superar el `TimeoutStopSec` de 20
   segundos del servicio; systemd mata entonces todo el grupo de procesos.
-- `--help` no está implementado. Se lee como nombre de archivo de
-  configuración y sale con código `1` y un error de configuración; la página
-  de manual es la referencia.
-- `--version` y `--diagnose` solo se reconocen como primer argumento.
+- `--help` muestra el resumen y sale con el código `0`; las opciones solo se
+  reconocen como primer argumento.
 - `--diagnose` comprueba la configuración y las rutas; no inicia ni sondea
   ningún objetivo, así que no demuestra que un objetivo esté sano.
 - La configuración es una entrada de confianza: los comandos de los objetivos

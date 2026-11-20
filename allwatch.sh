@@ -7,7 +7,8 @@
 #     code de sortie, sans agent ni protocole applicatif de son côté.
 #
 # Entrée / sortie : allwatch.sh [fichier.conf] (défaut allwatch.conf), Bash 5 au moins.
-#     Options : --version (affiche la version) ; --diagnose [fichier.conf] (contrôle sans lancer).
+#     Options : --version (affiche la version) ; --diagnose [fichier.conf] (contrôle sans lancer) ;
+#     --help (affiche ce résumé).
 #     État dans ${ALLWATCH_RUNTIME:-/tmp/allwatch-runtime}, vidé à la sortie ; journal plat
 #     dans ${XDG_STATE_HOME:-$HOME/.local/state}/allwatch/allwatch.log.
 set -euo pipefail
@@ -17,6 +18,8 @@ VERSION="0.1.0"
 MODE="run"
 case "${1:-}" in
   --version) printf 'allwatch %s\n' "$VERSION"; exit 0 ;;
+  --help) printf 'Usage : allwatch [CONFIGURATION]\n        allwatch --version\n        allwatch --diagnose [CONFIGURATION]\n        allwatch --help\n\nAllWatch supervise des cibles au premier plan : noyau (/proc), port TCP et code de sortie.\nOptions : --version ; --diagnose [CONF] (lecture sans lancement) ; --help.\nVariables : ALLWATCH_RUNTIME (état) ; XDG_STATE_HOME (journal). Voir allwatch(1).\n'
+    exit 0 ;;
   --diagnose) MODE="diagnose"; shift ;;
 esac
 CONF="${1:-allwatch.conf}"
