@@ -10,6 +10,10 @@ allwatch - kleiner Prozess-Supervisor für Linux
 
 **allwatch** [*KONFIGURATION*]
 
+**allwatch** **--version**
+
+**allwatch** **--diagnose** [*KONFIGURATION*]
+
 # BESCHREIBUNG
 
 **allwatch** ist ein kleiner Prozess-Supervisor, geschrieben in Bash. Er
@@ -21,6 +25,18 @@ Verbindung an, und der Exit-Code, den er bei seinem Ende zurückgegeben hat.
 Das Ziel ist eine Blackbox. Es registriert sich nicht bei AllWatch, sendet
 keine Statusmeldungen und muss nicht wissen, dass AllWatch existiert. Der
 Supervisor ist der Elternprozess, das Ziel ist das Kind.
+
+# OPTIONEN
+
+**--version**
+:   `allwatch 0.1.0` ausgeben und mit Exit-Code `0` beenden.
+
+**--diagnose** [*KONFIGURATION*]
+:   Die Konfiguration lesen, Version, Konfigurationspfad, Zustandsverzeichnis,
+    Journalpfad und die konfigurierten Ziele ausgeben und beenden. Startet und
+    prüft kein Ziel und schreibt weder Zustand noch Journal. Exit-Code `0`,
+    wenn die Konfiguration lesbar und die vorhandenen Zustands- und
+    Journalverzeichnisse nutzbar sind, sonst `1`.
 
 # KONFIGURATION
 
@@ -170,13 +186,16 @@ Nützliche Befehle:
 
 # EXIT-STATUS
 
-Der Supervisor beendet sich nicht von selbst: Er läuft bis `SIGINT` oder
-`SIGTERM`. Im Normalbetrieb gibt er daher nicht `0` zurück.
+**0**
+:   Wird von `--version` und einem erfolgreichen `--diagnose` zurückgegeben.
+    Die Überwachungsschleife endet nicht von selbst: Sie läuft bis `SIGINT`
+    oder `SIGTERM` und gibt im Normalbetrieb daher nicht `0` zurück.
 
 **1**
 :   Konfigurationsdatei nicht lesbar, Zustandsverzeichnis gehört nicht dem
-    aktuellen Benutzer, oder ein fataler Laufzeitfehler (ungültiger
-    Parameterwert, nicht beschreibbares Zustands- oder Journalverzeichnis).
+    aktuellen Benutzer, eine Pfadprüfung von `--diagnose` ist fehlgeschlagen,
+    oder ein fataler Laufzeitfehler (ungültiger Parameterwert, nicht
+    beschreibbares Zustands- oder Journalverzeichnis).
 
 **130**
 :   Unterbrochen durch `SIGINT`.
@@ -218,8 +237,9 @@ Mit dem Debian-Paket absolute Pfade verwenden, weil der Dienst aus
 - Bei mehr als vier Zielen kann ein sauberes Stoppen das `TimeoutStopSec`
   von 20 Sekunden des Dienstes überschreiten; systemd beendet dann die ganze
   Prozessgruppe.
-- Keine Option `--version` oder `--help` in dieser Version. Die Paketversion
-  steht in `dpkg -s allwatch`; eine spätere Version ergänzt diese Optionen.
+- `--help` ist nicht implementiert; die Handbuchseite ist die Referenz.
+- `--diagnose` prüft Konfiguration und Pfade; es startet und prüft kein Ziel,
+  beweist also nicht, dass ein Ziel gesund ist.
 
 # SIEHE AUCH
 

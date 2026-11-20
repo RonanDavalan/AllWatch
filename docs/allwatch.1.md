@@ -10,6 +10,10 @@ allwatch - tiny process supervisor for Linux
 
 **allwatch** [*CONFIGURATION*]
 
+**allwatch** **--version**
+
+**allwatch** **--diagnose** [*CONFIGURATION*]
+
 # DESCRIPTION
 
 **allwatch** is a small process supervisor written in Bash. It starts each
@@ -21,6 +25,18 @@ code it returned when it ended.
 The target is a black box. It does not register with AllWatch, does not
 send it status messages, and does not need to know that AllWatch exists.
 The supervisor is the parent; the target is the child.
+
+# OPTIONS
+
+**--version**
+:   Print `allwatch 0.1.0` and exit `0`.
+
+**--diagnose** [*CONFIGURATION*]
+:   Read the configuration, print the version, the configuration path, the
+    state directory, the log path and the configured targets, then exit. It
+    does not start or probe a target and writes no state or log. It exits `0`
+    when the configuration is readable and the existing state and log
+    directories are usable, `1` otherwise.
 
 # CONFIGURATION
 
@@ -163,13 +179,16 @@ Useful commands:
 
 # EXIT STATUS
 
-The supervisor does not terminate on its own: it runs until it receives
-`SIGINT` or `SIGTERM`. It therefore does not return `0` in normal operation.
+**0**
+:   Returned by `--version` and by a successful `--diagnose`. The supervision
+    loop does not terminate on its own: it runs until `SIGINT` or `SIGTERM`
+    and therefore does not return `0` in normal operation.
 
 **1**
 :   The configuration file is unreadable, the state directory is not owned
-    by the current user, or a fatal runtime error occurred (invalid parameter
-    value, unwritable state or log directory).
+    by the current user, a `--diagnose` path check failed, or a fatal runtime
+    error occurred (invalid parameter value, unwritable state or log
+    directory).
 
 **130**
 :   Interrupted by `SIGINT`.
@@ -210,8 +229,9 @@ service runs from `/var/lib/allwatch`:
 - The flat log is not rotated.
 - With more than four targets, a clean stop can exceed the service's
   20-second `TimeoutStopSec`; systemd then kills the whole cgroup.
-- No `--version` or `--help` option in this version. The package version is
-  read with `dpkg -s allwatch`; a future version will add these options.
+- `--help` is not implemented; the manual page is the reference.
+- `--diagnose` checks the configuration and paths; it does not start or probe
+  a target, so it does not prove that a target is healthy.
 
 # SEE ALSO
 

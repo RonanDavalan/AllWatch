@@ -10,6 +10,10 @@ allwatch - pequeño supervisor de procesos para Linux
 
 **allwatch** [*CONFIGURACIÓN*]
 
+**allwatch** **--version**
+
+**allwatch** **--diagnose** [*CONFIGURACIÓN*]
+
 # DESCRIPCIÓN
 
 **allwatch** es un pequeño supervisor de procesos escrito en Bash. Inicia
@@ -21,6 +25,18 @@ salida que devolvió al terminar.
 El objetivo es una caja negra. No se registra ante AllWatch, no le envía
 mensajes de estado y no necesita saber que AllWatch existe. El supervisor es
 el padre; el objetivo es el hijo.
+
+# OPCIONES
+
+**--version**
+:   Mostrar `allwatch 0.1.0` y salir con el código `0`.
+
+**--diagnose** [*CONFIGURACIÓN*]
+:   Leer la configuración, mostrar la versión, la ruta de la configuración, el
+    directorio de estado, la ruta del diario y los objetivos configurados, y
+    salir. No inicia ni sondea ningún objetivo y no escribe estado ni diario.
+    Sale con `0` si la configuración es legible y los directorios de estado y
+    diario existentes son utilizables, `1` en caso contrario.
 
 # CONFIGURACIÓN
 
@@ -165,13 +181,16 @@ Comandos útiles:
 
 # CÓDIGO DE SALIDA
 
-El supervisor no termina por sí solo: se ejecuta hasta `SIGINT` o `SIGTERM`.
-Por tanto, no devuelve `0` en funcionamiento normal.
+**0**
+:   Lo devuelven `--version` y un `--diagnose` correcto. El bucle de
+    supervisión no termina por sí solo: se ejecuta hasta `SIGINT` o `SIGTERM`
+    y, por tanto, no devuelve `0` en funcionamiento normal.
 
 **1**
 :   Archivo de configuración ilegible, directorio de estado que no pertenece
-    al usuario actual, o error fatal (valor de parámetro inválido, directorio
-    de estado o de diario no escribible).
+    al usuario actual, una comprobación de ruta de `--diagnose` fallida, o
+    error fatal (valor de parámetro inválido, directorio de estado o de diario
+    no escribible).
 
 **130**
 :   Interrumpido por `SIGINT`.
@@ -213,8 +232,9 @@ servicio se ejecuta desde `/var/lib/allwatch`:
 - Con más de cuatro objetivos, una parada limpia puede superar el
   `TimeoutStopSec` de 20 segundos del servicio; systemd mata entonces todo el
   grupo de procesos.
-- Sin opción `--version` ni `--help` en esta versión. La versión del paquete
-  se lee con `dpkg -s allwatch`; una versión futura añadirá estas opciones.
+- `--help` no está implementado; la página de manual es la referencia.
+- `--diagnose` comprueba la configuración y las rutas; no inicia ni sondea
+  ningún objetivo, así que no demuestra que un objetivo esté sano.
 
 # VÉASE TAMBIÉN
 

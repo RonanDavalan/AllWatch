@@ -10,6 +10,10 @@ allwatch - micro-superviseur de processus pour Linux
 
 **allwatch** [*CONFIGURATION*]
 
+**allwatch** **--version**
+
+**allwatch** **--diagnose** [*CONFIGURATION*]
+
 # DESCRIPTION
 
 **allwatch** est un petit superviseur de processus écrit en Bash. Il lance
@@ -21,6 +25,18 @@ code de sortie qu'il a renvoyé à sa fin.
 La cible est une boîte noire. Elle ne s'enregistre pas auprès d'AllWatch, ne
 lui envoie aucun message d'état et n'a pas besoin de savoir qu'AllWatch
 existe. Le superviseur est le parent ; la cible est l'enfant.
+
+# OPTIONS
+
+**--version**
+:   Afficher `allwatch 0.1.0` et sortir avec le code `0`.
+
+**--diagnose** [*CONFIGURATION*]
+:   Lire la configuration, afficher la version, le chemin de la configuration,
+    le répertoire d'état, le chemin du journal et les cibles configurées, puis
+    sortir. Ne lance ni ne sonde aucune cible et n'écrit ni état ni journal.
+    Sort avec `0` si la configuration est lisible et si les répertoires d'état
+    et de journal existants sont utilisables, `1` sinon.
 
 # CONFIGURATION
 
@@ -167,13 +183,16 @@ Commandes utiles :
 
 # CODE DE SORTIE
 
-Le superviseur ne se termine pas de lui-même : il s'exécute jusqu'à `SIGINT`
-ou `SIGTERM`. Il ne renvoie donc pas `0` en fonctionnement normal.
+**0**
+:   Renvoyé par `--version` et par un `--diagnose` réussi. La boucle de
+    supervision ne se termine pas d'elle-même : elle s'exécute jusqu'à
+    `SIGINT` ou `SIGTERM` et ne renvoie donc pas `0` en fonctionnement normal.
 
 **1**
 :   Fichier de configuration illisible, répertoire d'état qui n'appartient
-    pas à l'utilisateur courant, ou erreur fatale (valeur de paramètre
-    invalide, répertoire d'état ou de journal non inscriptible).
+    pas à l'utilisateur courant, contrôle de chemin de `--diagnose` en échec,
+    ou erreur fatale (valeur de paramètre invalide, répertoire d'état ou de
+    journal non inscriptible).
 
 **130**
 :   Interruption par `SIGINT`.
@@ -215,9 +234,9 @@ service s'exécute depuis `/var/lib/allwatch` :
 - Avec plus de quatre cibles, un arrêt propre peut dépasser le
   `TimeoutStopSec` de 20 secondes du service ; systemd tue alors tout le
   groupe de processus.
-- Pas d'option `--version` ni `--help` dans cette version. La version du
-  paquet se lit avec `dpkg -s allwatch` ; une version future ajoutera ces
-  options.
+- `--help` n'est pas implémenté ; la page de manuel est la référence.
+- `--diagnose` contrôle la configuration et les chemins ; il ne lance ni ne
+  sonde aucune cible, donc il ne prouve pas qu'une cible est saine.
 
 # VOIR AUSSI
 

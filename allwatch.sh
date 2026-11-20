@@ -7,11 +7,18 @@
 #     code de sortie, sans agent ni protocole applicatif de son côté.
 #
 # Entrée / sortie : allwatch.sh [fichier.conf] (défaut allwatch.conf), Bash 5 au moins.
+#     Options : --version (affiche la version) ; --diagnose [fichier.conf] (contrôle sans lancer).
 #     État dans ${ALLWATCH_RUNTIME:-/tmp/allwatch-runtime}, vidé à la sortie ; journal plat
 #     dans ${XDG_STATE_HOME:-$HOME/.local/state}/allwatch/allwatch.log.
 set -euo pipefail
 
 # --- Bloc 1 : constantes et configuration ---
+VERSION="0.1.0"
+MODE="run"
+case "${1:-}" in
+  --version) printf 'allwatch %s\n' "$VERSION"; exit 0 ;;
+  --diagnose) MODE="diagnose"; shift ;;
+esac
 CONF="${1:-allwatch.conf}"
 RT="${ALLWATCH_RUNTIME:-/tmp/allwatch-runtime}"
 LOG="${XDG_STATE_HOME:-$HOME/.local/state}/allwatch/allwatch.log"
@@ -31,6 +38,45 @@ while read -r id port pol cmd || [ -n "$id" ]; do
 done <"$CONF"
 # Deux sondes en échec au moins avant de neutraliser : un ralentissement passager n'en coûte pas une.
 GRACE=$((2 * POLL_SECONDS))
+
+# Diagnostic statique : lit la configuration et les chemins, ne lance ni ne sonde aucune cible.
+diagnostiquer() {
+  local rc=0 id
+  printf 'allwatch %s\n' "$VERSION"
+  printf 'configuration: %s\n' "$CONF"
+  printf 'runtime: %s\n' "$RT"
+  printf 'journal: %s\n' "$LOG"
+  printf 'targets: %d\n' "${#IDS[@]}"
+  for id in "${IDS[@]}"; do
+    printf '  %s port=%s policy=%s\n' "$id" "${PORT[$id]}" "${POL[$id]}"
+  done
+  if [ -e "$RT" ]; then
+    if [ -d "$RT" ] && [ -O "$RT" ]; then
+      printf 'runtime: owned by current user\n'
+    else
+      printf 'runtime: exists but is not a directory owned by the current user\n' >&2
+      rc=1
+    fi
+  else
+    printf 'runtime: absent (created at startup)\n'
+  fi
+  if [ -e "${LOG%/*}" ]; then
+    if [ -d "${LOG%/*}" ] && [ -w "${LOG%/*}" ]; then
+      printf 'log directory: writable\n'
+    else
+      printf 'log directory: exists but is not a writable directory\n' >&2
+      rc=1
+    fi
+  else
+    printf 'log directory: absent (created at startup)\n'
+  fi
+  return "$rc"
+}
+
+if [ "$MODE" = diagnose ]; then
+  diagnostiquer
+  exit $?
+fi
 
 # Un répertoire d'état qui n'est pas à nous laisserait un tiers dicter les PID que nous tuons.
 mkdir -p -m 700 "$RT" "${LOG%/*}"
