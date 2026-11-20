@@ -23,14 +23,14 @@ Les lignes du journal sont `date id événement`. Les événements sont `DEMARRA
 
 - Politique `on-failure` : une cible qui se termine avec le code `0` reste arrêtée. C'est le contrat, pas une panne. Utilisez `always` si elle doit être relancée après un arrêt propre.
 - Politique `transient` : jamais relancée.
-- Fichier d'arrêt présent : `ls -l /run/allwatch/<id>.stop` ; retirez-le si l'arrêt n'était pas voulu. Le fichier n'arrête pas à lui seul une cible en cours.
+- Fichier d'arrêt présent : `ls -l /run/allwatch/demo.stop` ; retirez-le si l'arrêt n'était pas voulu. Le fichier n'arrête pas à lui seul une cible en cours.
 - `ALERTE VERROU_CRITIQUE` : la cible a atteint `MAX_RESTARTS` dans `RESTART_WINDOW`. Corrigez la cause, puis redémarrez le service ; le verrou dure jusqu'au redémarrage du superviseur.
 - `CRASHE code=N` : la cible s'est terminée avec le code N. Lisez son propre journal ; AllWatch ne rapporte que le code.
 
 ## La cible est déclarée bloquée alors qu'elle tourne
 
-- La sonde est `timeout 3 bash -c ': > /dev/tcp/127.0.0.1/<port>'`. La cible doit écouter sur `127.0.0.1` (ou `0.0.0.0`) sur le port déclaré. Une cible qui n'écoute que sur une autre adresse est considérée comme bloquée.
-- Mauvais port dans `/etc/allwatch/allwatch.conf` ; vérifiez avec `ss -ltnp | grep <port>`.
+- La sonde est `timeout 3 bash -c ': > /dev/tcp/127.0.0.1/9001'`. La cible doit écouter sur `127.0.0.1` (ou `0.0.0.0`) sur le port déclaré. Une cible qui n'écoute que sur une autre adresse est considérée comme bloquée.
+- Mauvais port dans `/etc/allwatch/allwatch.conf` ; vérifiez avec `ss -ltnp | grep 9001`.
 - La cible est plus lente que `PROBE_TIMEOUT=3` ; augmentez-le dans la configuration, puis redémarrez le service.
 - La cible est vivante mais son écoute est fermée ; c'est exactement l'état bloqué. AllWatch envoie `SIGTERM`, attend 5 secondes, puis `SIGKILL`, et la relance.
 

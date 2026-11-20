@@ -123,8 +123,8 @@ Añada:
 
 ```ini
 [Service]
-User=miusuario
-Group=migrupo
+User=www-data
+Group=www-data
 ```
 
 Luego reinicie:

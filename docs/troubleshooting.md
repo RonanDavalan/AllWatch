@@ -23,14 +23,14 @@ The log lines are `date id event`. The events are `DEMARRAGE`, `DEMARRE`, `ADOPT
 
 - Policy `on-failure`: a target that exits with code `0` is left stopped. This is the contract, not a failure. Use `always` if it must restart after a clean exit.
 - Policy `transient`: never restarted.
-- Stop file present: `ls -l /run/allwatch/<id>.stop`; remove it if the stop was not intended. The file itself does not stop a running target.
+- Stop file present: `ls -l /run/allwatch/demo.stop`; remove it if the stop was not intended. The file itself does not stop a running target.
 - `ALERTE VERROU_CRITIQUE`: the target reached `MAX_RESTARTS` in `RESTART_WINDOW`. Fix the cause, then restart the service; the lock lasts until the supervisor restarts.
 - `CRASHE code=N`: the target exited with code N. Read its own log; AllWatch only reports the code.
 
 ## The target is reported hung but it is running
 
-- The probe is `timeout 3 bash -c ': > /dev/tcp/127.0.0.1/<port>'`. The target must listen on `127.0.0.1` (or `0.0.0.0`) on the declared port. A target that listens only on another address is considered hung.
-- Wrong port in `/etc/allwatch/allwatch.conf`; check with `ss -ltnp | grep <port>`.
+- The probe is `timeout 3 bash -c ': > /dev/tcp/127.0.0.1/9001'`. The target must listen on `127.0.0.1` (or `0.0.0.0`) on the declared port. A target that listens only on another address is considered hung.
+- Wrong port in `/etc/allwatch/allwatch.conf`; check with `ss -ltnp | grep 9001`.
 - The target is slower than `PROBE_TIMEOUT=3`; raise it in the configuration, then restart the service.
 - The target is alive but its listener is closed; this is exactly the hang state. AllWatch sends `SIGTERM`, waits 5 seconds, then `SIGKILL`, and restarts it.
 

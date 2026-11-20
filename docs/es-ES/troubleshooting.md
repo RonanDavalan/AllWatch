@@ -23,14 +23,14 @@ Las líneas del diario son `fecha id evento`. Los eventos son `DEMARRAGE`, `DEMA
 
 - Política `on-failure`: un objetivo que termina con código `0` queda detenido. Es el contrato, no un fallo. Use `always` si debe reiniciarse tras una parada limpia.
 - Política `transient`: nunca se reinicia.
-- Archivo de parada presente: `ls -l /run/allwatch/<id>.stop`; retírelo si la parada no era intencionada. El archivo no detiene por sí solo un objetivo en ejecución.
+- Archivo de parada presente: `ls -l /run/allwatch/demo.stop`; retírelo si la parada no era intencionada. El archivo no detiene por sí solo un objetivo en ejecución.
 - `ALERTE VERROU_CRITIQUE`: el objetivo alcanzó `MAX_RESTARTS` en `RESTART_WINDOW`. Corrija la causa y reinicie el servicio; el bloqueo dura hasta el reinicio del supervisor.
 - `CRASHE code=N`: el objetivo terminó con el código N. Lea su propio diario; AllWatch solo informa del código.
 
 ## El objetivo se declara bloqueado aunque esté en marcha
 
-- La sonda es `timeout 3 bash -c ': > /dev/tcp/127.0.0.1/<puerto>'`. El objetivo debe escuchar en `127.0.0.1` (o `0.0.0.0`) en el puerto declarado. Un objetivo que solo escucha en otra dirección se considera bloqueado.
-- Puerto equivocado en `/etc/allwatch/allwatch.conf`; compruebe con `ss -ltnp | grep <puerto>`.
+- La sonda es `timeout 3 bash -c ': > /dev/tcp/127.0.0.1/9001'`. El objetivo debe escuchar en `127.0.0.1` (o `0.0.0.0`) en el puerto declarado. Un objetivo que solo escucha en otra dirección se considera bloqueado.
+- Puerto equivocado en `/etc/allwatch/allwatch.conf`; compruebe con `ss -ltnp | grep 9001`.
 - El objetivo es más lento que `PROBE_TIMEOUT=3`; aumente el valor en la configuración y reinicie el servicio.
 - El objetivo está vivo pero su escucha está cerrada; es exactamente el estado bloqueado. AllWatch envía `SIGTERM`, espera 5 segundos, envía `SIGKILL` y lo reinicia.
 

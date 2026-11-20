@@ -23,14 +23,14 @@ Die Protokollzeilen sind `Datum id Ereignis`. Die Ereignisse sind `DEMARRAGE`, `
 
 - Richtlinie `on-failure`: Ein Ziel, das mit Code `0` endet, bleibt gestoppt. Das ist der Vertrag, kein Fehler. Verwenden Sie `always`, wenn es nach einem sauberen Ende neu starten soll.
 - Richtlinie `transient`: wird nie neu gestartet.
-- Stoppdatei vorhanden: `ls -l /run/allwatch/<id>.stop`; entfernen Sie sie, wenn der Stopp nicht gewollt war. Die Datei stoppt ein laufendes Ziel nicht von selbst.
+- Stoppdatei vorhanden: `ls -l /run/allwatch/demo.stop`; entfernen Sie sie, wenn der Stopp nicht gewollt war. Die Datei stoppt ein laufendes Ziel nicht von selbst.
 - `ALERTE VERROU_CRITIQUE`: Das Ziel hat `MAX_RESTARTS` in `RESTART_WINDOW` erreicht. Beheben Sie die Ursache und starten Sie den Dienst neu; die Sperre gilt bis zum Neustart des Supervisors.
 - `CRASHE code=N`: Das Ziel endete mit Code N. Lesen Sie sein eigenes Protokoll; AllWatch meldet nur den Code.
 
 ## Das Ziel gilt als blockiert, obwohl es läuft
 
-- Die Sonde ist `timeout 3 bash -c ': > /dev/tcp/127.0.0.1/<port>'`. Das Ziel muss auf `127.0.0.1` (oder `0.0.0.0`) am deklarierten Port lauschen. Ein Ziel, das nur auf einer anderen Adresse lauscht, gilt als blockiert.
-- Falscher Port in `/etc/allwatch/allwatch.conf`; prüfen Sie mit `ss -ltnp | grep <port>`.
+- Die Sonde ist `timeout 3 bash -c ': > /dev/tcp/127.0.0.1/9001'`. Das Ziel muss auf `127.0.0.1` (oder `0.0.0.0`) am deklarierten Port lauschen. Ein Ziel, das nur auf einer anderen Adresse lauscht, gilt als blockiert.
+- Falscher Port in `/etc/allwatch/allwatch.conf`; prüfen Sie mit `ss -ltnp | grep 9001`.
 - Das Ziel ist langsamer als `PROBE_TIMEOUT=3`; erhöhen Sie den Wert in der Konfiguration und starten Sie den Dienst neu.
 - Das Ziel lebt, aber sein Listener ist geschlossen; genau das ist der Blockierzustand. AllWatch sendet `SIGTERM`, wartet 5 Sekunden, sendet `SIGKILL` und startet das Ziel neu.
 
