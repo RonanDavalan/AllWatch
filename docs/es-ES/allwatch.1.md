@@ -73,7 +73,18 @@ Políticas:
 **transient**
 :   No reiniciar nunca el objetivo.
 
+Un valor de política distinto de estos tres no se rechaza: el objetivo se
+trata entonces como `always`.
+
+Para pedir una parada deliberada, crear `id.stop` en el directorio de estado
+antes de que termine el objetivo (`touch /run/allwatch/id.stop` para el
+servicio Debian). AllWatch elimina el archivo y no reinicia el objetivo. El
+archivo no detiene por sí solo un objetivo en ejecución.
+
 # ESTADOS
+
+AllWatch informa cuatro estados ordinarios, más un estado excepcional de
+bloqueo:
 
 **Activo**
 :   El proceso existe y su puerto acepta una conexión.
@@ -85,18 +96,27 @@ Políticas:
 
 **Caído**
 :   El proceso desapareció sin una parada deliberada. AllWatch lee el código
-    de salida y reinicia el objetivo si su política lo permite.
+    de salida y reinicia el objetivo si su política lo permite. En un
+    objetivo adoptado tras un reinicio del supervisor, el código de salida no
+    está disponible; su desaparición se trata como un fallo.
 
 **Terminado**
-:   El objetivo terminó y su política indica dejarlo detenido, o se alcanzó
-    el límite de reinicios. El archivo de estado se elimina.
+:   El objetivo terminó y su política indica dejarlo detenido, o se atendió
+    una marca de parada del operador. El archivo de estado se elimina.
+
+**Bloqueado (VERROU_CRITIQUE)**
+:   El objetivo alcanzó `MAX_RESTARTS` reinicios dentro de `RESTART_WINDOW`.
+    AllWatch deja de reiniciarlo, registra una alerta y elimina el archivo de
+    estado. Los demás objetivos siguen.
 
 # ARCHIVOS
 
 */tmp/allwatch-runtime*
-:   Directorio de estado por defecto: un archivo `id.pid`, `id.stop` o
-    `id.fails` por objetivo. Se vacía al detener el supervisor. Se cambia
-    con la variable de entorno `ALLWATCH_RUNTIME`.
+:   Directorio de estado por defecto: un archivo `id.pid` y un archivo
+    `id.fails` por objetivo; el operador crea un archivo `id.stop` para pedir
+    una parada deliberada. AllWatch elimina sus propios archivos `.pid`,
+    `.stop` y `.fails` al detenerse; los demás archivos permanecen. El
+    directorio se cambia con la variable de entorno `ALLWATCH_RUNTIME`.
 
 *$XDG_STATE_HOME/allwatch/allwatch.log*, *$HOME/.local/state/allwatch/allwatch.log*
 :   Diario plano, una línea por evento (`fecha id evento`). El directorio se
@@ -138,16 +158,20 @@ Comandos útiles:
     termina (`130` para `SIGINT`, `143` para `SIGTERM`).
 
 **SIGTERM** a un objetivo
-:   El objetivo debe terminar en 5 segundos con código de salida 0.
+:   El objetivo debe terminar en 5 segundos con código de salida 0. Un
+    objetivo que tuvo que ser neutralizado tras un bloqueo se considera
+    fallido y se reinicia según su política, aunque termine con código 0
+    después de la señal.
 
 # CÓDIGO DE SALIDA
 
-**0**
-:   Parada normal.
+El supervisor no termina por sí solo: se ejecuta hasta `SIGINT` o `SIGTERM`.
+Por tanto, no devuelve `0` en funcionamiento normal.
 
 **1**
-:   Archivo de configuración ilegible, o directorio de estado que no
-    pertenece al usuario actual.
+:   Archivo de configuración ilegible, directorio de estado que no pertenece
+    al usuario actual, o error fatal (valor de parámetro inválido, directorio
+    de estado o de diario no escribible).
 
 **130**
 :   Interrumpido por `SIGINT`.
@@ -180,6 +204,15 @@ servicio se ejecuta desde `/var/lib/allwatch`:
 - Sin análisis de diarios de la aplicación para decidir un reinicio.
 - Sin comprobaciones por título de ventana, X11 o Wayland.
 - Sin supervisión de un objetivo que se separe en segundo plano.
+- Los valores de configuración y los nombres de política no se validan: una
+  política mal escrita actúa como `always`, y un valor de tiempo no numérico
+  o cero puede romper el bucle.
+- Tras un reinicio del supervisor, el código de salida de un objetivo
+  adoptado no está disponible; su desaparición se trata como un fallo.
+- El diario plano no se rota.
+- Con más de cuatro objetivos, una parada limpia puede superar el
+  `TimeoutStopSec` de 20 segundos del servicio; systemd mata entonces todo el
+  grupo de procesos.
 - Sin opción `--version` ni `--help` en esta versión. La versión del paquete
   se lee con `dpkg -s allwatch`; una versión futura añadirá estas opciones.
 

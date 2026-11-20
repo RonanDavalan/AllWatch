@@ -73,7 +73,18 @@ Richtlinien:
 **transient**
 :   Das Ziel nie neu starten.
 
+Ein anderer Richtlinienwert als diese drei wird nicht zurückgewiesen: Das Ziel
+wird dann wie `always` behandelt.
+
+Um ein bewusstes Ende zu verlangen, vor dem Ende des Ziels eine Datei
+`id.stop` im Zustandsverzeichnis anlegen (`touch /run/allwatch/id.stop` für
+den Debian-Dienst). AllWatch entfernt die Datei und startet das Ziel nicht
+neu. Die Datei stoppt ein laufendes Ziel nicht von selbst.
+
 # ZUSTÄNDE
+
+AllWatch meldet vier gewöhnliche Zustände, dazu einen Ausnahmezustand der
+Sperre:
 
 **Läuft**
 :   Der Prozess existiert und sein Port nimmt eine Verbindung an.
@@ -86,17 +97,28 @@ Richtlinien:
 **Abgestürzt**
 :   Der Prozess ist ohne bewusstes Ende verschwunden. AllWatch liest den
     Exit-Code und startet das Ziel neu, wenn seine Richtlinie es verlangt.
+    Bei einem Ziel, das nach einem Neustart des Supervisors übernommen wurde,
+    ist der Exit-Code nicht verfügbar; sein Verschwinden gilt als Fehler.
 
 **Beendet**
-:   Das Ziel ist zu Ende und seine Richtlinie lässt es gestoppt, oder das
-    Neustartlimit ist erreicht. Die Zustandsdatei wird entfernt.
+:   Das Ziel ist zu Ende und seine Richtlinie lässt es gestoppt, oder ein
+    Stopp-Flag des Betreibers wurde berücksichtigt. Die Zustandsdatei wird
+    entfernt.
+
+**Gesperrt (VERROU_CRITIQUE)**
+:   Das Ziel hat `MAX_RESTARTS` Neustarts innerhalb von `RESTART_WINDOW`
+    erreicht. AllWatch beendet die Neustarts, schreibt eine Warnung und
+    entfernt die Zustandsdatei. Die anderen Ziele laufen weiter.
 
 # DATEIEN
 
 */tmp/allwatch-runtime*
-:   Standard-Zustandsverzeichnis: eine Datei `id.pid`, `id.stop` oder
-    `id.fails` pro Ziel. Es wird beim Stoppen des Supervisors geleert. Mit
-    der Umgebungsvariable `ALLWATCH_RUNTIME` änderbar.
+:   Standard-Zustandsverzeichnis: eine Datei `id.pid` und eine Datei
+    `id.fails` pro Ziel; eine Datei `id.stop` wird vom Betreiber angelegt,
+    um ein bewusstes Ende zu verlangen. AllWatch entfernt beim Stoppen seine
+    eigenen Dateien `.pid`, `.stop` und `.fails`; andere Dateien bleiben. Das
+    Verzeichnis lässt sich mit der Umgebungsvariable `ALLWATCH_RUNTIME`
+    ändern.
 
 *$XDG_STATE_HOME/allwatch/allwatch.log*, *$HOME/.local/state/allwatch/allwatch.log*
 :   Flaches Ereignisjournal, eine Zeile pro Ereignis (`Datum id Ereignis`).
@@ -141,16 +163,20 @@ Nützliche Befehle:
     `SIGTERM`).
 
 **SIGTERM** an ein Ziel
-:   Das Ziel muss innerhalb von 5 Sekunden mit Exit-Code 0 enden.
+:   Das Ziel muss innerhalb von 5 Sekunden mit Exit-Code 0 enden. Ein Ziel,
+    das nach einem Hänger neutralisiert werden musste, gilt als fehlerhaft
+    und wird gemäß seiner Richtlinie neu gestartet, auch wenn es nach dem
+    Signal mit Code 0 endet.
 
 # EXIT-STATUS
 
-**0**
-:   Normales Ende.
+Der Supervisor beendet sich nicht von selbst: Er läuft bis `SIGINT` oder
+`SIGTERM`. Im Normalbetrieb gibt er daher nicht `0` zurück.
 
 **1**
-:   Konfigurationsdatei nicht lesbar oder Zustandsverzeichnis gehört nicht
-    dem aktuellen Benutzer.
+:   Konfigurationsdatei nicht lesbar, Zustandsverzeichnis gehört nicht dem
+    aktuellen Benutzer, oder ein fataler Laufzeitfehler (ungültiger
+    Parameterwert, nicht beschreibbares Zustands- oder Journalverzeichnis).
 
 **130**
 :   Unterbrochen durch `SIGINT`.
@@ -183,6 +209,15 @@ Mit dem Debian-Paket absolute Pfade verwenden, weil der Dienst aus
 - Keine Auswertung von Anwendungsjournalen für Neustarts.
 - Keine Prüfung über Fenstertitel, X11 oder Wayland.
 - Keine Überwachung eines Ziels, das sich im Hintergrund ablöst.
+- Konfigurationswerte und Richtliniennamen werden nicht geprüft: Eine falsch
+  geschriebene Richtlinie wirkt wie `always`, und ein nicht numerischer oder
+  Null-Zeitwert kann die Schleife abbrechen.
+- Nach einem Neustart des Supervisors ist der Exit-Code eines übernommenen
+  Ziels nicht verfügbar; sein Verschwinden gilt als Fehler.
+- Das flache Journal wird nicht rotiert.
+- Bei mehr als vier Zielen kann ein sauberes Stoppen das `TimeoutStopSec`
+  von 20 Sekunden des Dienstes überschreiten; systemd beendet dann die ganze
+  Prozessgruppe.
 - Keine Option `--version` oder `--help` in dieser Version. Die Paketversion
   steht in `dpkg -s allwatch`; eine spätere Version ergänzt diese Optionen.
 

@@ -72,7 +72,17 @@ Policies:
 **transient**
 :   Never restart the target.
 
+A policy value other than these three is not rejected: the target is then
+treated as `always`.
+
+To request a deliberate stop, create `id.stop` in the state directory before
+the target ends (`touch /run/allwatch/id.stop` for the Debian service).
+AllWatch removes the file and does not restart the target. The file does not
+stop a running target by itself.
+
 # STATES
+
+AllWatch reports four ordinary states, plus an exceptional locked state:
 
 **Up**
 :   The process exists and its port accepts a connection.
@@ -84,17 +94,26 @@ Policies:
 
 **Crashed**
 :   The process is gone without a deliberate stop. AllWatch reads the exit
-    code and restarts the target if its policy says so.
+    code and restarts the target if its policy says so. For a target adopted
+    after a supervisor restart, the exit code is not available: its
+    disappearance is treated as a failure.
 
 **Quit**
-:   The target ended and its policy says to leave it alone, or the restart
-    limit was reached. The state file is removed.
+:   The target ended and its policy says to leave it alone, or an operator
+    stop flag was honored. The state file is removed.
+
+**Locked (VERROU_CRITIQUE)**
+:   The target reached `MAX_RESTARTS` restarts inside `RESTART_WINDOW`.
+    AllWatch stops restarting it, logs an alert and removes the state file.
+    The other targets continue.
 
 # FILES
 
 */tmp/allwatch-runtime*
-:   Default state directory: one `id.pid`, `id.stop` or `id.fails` file per
-    target. It is emptied when the supervisor stops. Override it with the
+:   Default state directory: one `id.pid` and one `id.fails` file per target;
+    an `id.stop` file is created by the operator to request a deliberate
+    stop. AllWatch removes its own `.pid`, `.stop` and `.fails` files when it
+    stops; other files are left. Override the directory with the
     `ALLWATCH_RUNTIME` environment variable.
 
 *$XDG_STATE_HOME/allwatch/allwatch.log*, *$HOME/.local/state/allwatch/allwatch.log*
@@ -138,16 +157,19 @@ Useful commands:
     exits (`130` for `SIGINT`, `143` for `SIGTERM`).
 
 **SIGTERM** to a target
-:   The target must stop within 5 seconds with exit code 0.
+:   The target must stop within 5 seconds with exit code 0. A target that had
+    to be neutralized after a hang is treated as failed and restarted
+    according to its policy, even if it exits 0 after the signal.
 
 # EXIT STATUS
 
-**0**
-:   Normal stop.
+The supervisor does not terminate on its own: it runs until it receives
+`SIGINT` or `SIGTERM`. It therefore does not return `0` in normal operation.
 
 **1**
-:   The configuration file is unreadable, or the state directory is not
-    owned by the current user.
+:   The configuration file is unreadable, the state directory is not owned
+    by the current user, or a fatal runtime error occurred (invalid parameter
+    value, unwritable state or log directory).
 
 **130**
 :   Interrupted by `SIGINT`.
@@ -181,6 +203,13 @@ service runs from `/var/lib/allwatch`:
 - No parsing of application logs to decide a restart.
 - No checks based on window titles, X11 or Wayland.
 - No supervision of a target that daemonizes or double-forks.
+- Configuration values and policy names are not validated: a mistyped policy
+  acts as `always`, and a non-numeric or zero timing value can break the loop.
+- After a supervisor restart, an adopted target's exit code is unavailable;
+  its disappearance is treated as a failure.
+- The flat log is not rotated.
+- With more than four targets, a clean stop can exceed the service's
+  20-second `TimeoutStopSec`; systemd then kills the whole cgroup.
 - No `--version` or `--help` option in this version. The package version is
   read with `dpkg -s allwatch`; a future version will add these options.
 

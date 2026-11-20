@@ -72,7 +72,18 @@ Politiques :
 **transient**
 :   Ne jamais relancer la cible.
 
+Une valeur de politique autre que ces trois n'est pas refusée : la cible est
+alors traitée comme `always`.
+
+Pour demander un arrêt volontaire, créer `id.stop` dans le répertoire d'état
+avant la fin de la cible (`touch /run/allwatch/id.stop` pour le service
+Debian). AllWatch retire le fichier et ne relance pas la cible. Ce fichier
+n'arrête pas une cible vivante par lui-même.
+
 # ÉTATS
+
+AllWatch rapporte quatre états ordinaires, plus un état exceptionnel de
+verrouillage :
 
 **Allumé**
 :   Le processus existe et son port accepte une connexion.
@@ -85,18 +96,28 @@ Politiques :
 
 **Crashé**
 :   Le processus a disparu sans arrêt volontaire. AllWatch lit le code de
-    sortie et relance la cible si sa politique le demande.
+    sortie et relance la cible si sa politique le demande. Pour une cible
+    adoptée après un redémarrage du superviseur, le code de sortie n'est pas
+    disponible : sa disparition est traitée comme un échec.
 
 **Quitté**
-:   La cible s'est terminée et sa politique dit de la laisser arrêtée, ou la
-    limite de relances est atteinte. Le fichier d'état est retiré.
+:   La cible s'est terminée et sa politique dit de la laisser arrêtée, ou un
+    drapeau d'arrêt de l'opérateur a été pris en compte. Le fichier d'état est
+    retiré.
+
+**Verrouillé (VERROU_CRITIQUE)**
+:   La cible a atteint `MAX_RESTARTS` relances dans `RESTART_WINDOW`.
+    AllWatch cesse de la relancer, consigne une alerte et retire le fichier
+    d'état. Les autres cibles continuent.
 
 # FICHIERS
 
 */tmp/allwatch-runtime*
-:   Répertoire d'état par défaut : un fichier `id.pid`, `id.stop` ou
-    `id.fails` par cible. Il est vidé à l'arrêt du superviseur. Le changer
-    avec la variable d'environnement `ALLWATCH_RUNTIME`.
+:   Répertoire d'état par défaut : un fichier `id.pid` et un fichier
+    `id.fails` par cible ; un fichier `id.stop` est créé par l'opérateur pour
+    demander un arrêt volontaire. AllWatch retire ses propres fichiers
+    `.pid`, `.stop` et `.fails` à l'arrêt ; les autres fichiers restent. Le
+    changer avec la variable d'environnement `ALLWATCH_RUNTIME`.
 
 *$XDG_STATE_HOME/allwatch/allwatch.log*, *$HOME/.local/state/allwatch/allwatch.log*
 :   Journal plat, une ligne par événement (`date id événement`). Le
@@ -139,16 +160,20 @@ Commandes utiles :
     sort (`130` pour `SIGINT`, `143` pour `SIGTERM`).
 
 **SIGTERM** à une cible
-:   La cible doit s'arrêter en 5 secondes avec le code de sortie 0.
+:   La cible doit s'arrêter en 5 secondes avec le code de sortie 0. Une cible
+    qui a dû être neutralisée après un blocage est traitée comme défaillante
+    et relancée selon sa politique, même si elle sort avec le code 0 après le
+    signal.
 
 # CODE DE SORTIE
 
-**0**
-:   Arrêt normal.
+Le superviseur ne se termine pas de lui-même : il s'exécute jusqu'à `SIGINT`
+ou `SIGTERM`. Il ne renvoie donc pas `0` en fonctionnement normal.
 
 **1**
-:   Fichier de configuration illisible, ou répertoire d'état qui
-    n'appartient pas à l'utilisateur courant.
+:   Fichier de configuration illisible, répertoire d'état qui n'appartient
+    pas à l'utilisateur courant, ou erreur fatale (valeur de paramètre
+    invalide, répertoire d'état ou de journal non inscriptible).
 
 **130**
 :   Interruption par `SIGINT`.
@@ -181,6 +206,15 @@ service s'exécute depuis `/var/lib/allwatch` :
 - Pas d'analyse des journaux applicatifs pour décider d'une relance.
 - Pas de contrôle par le titre des fenêtres, X11 ou Wayland.
 - Pas de supervision d'une cible qui se détache en arrière-plan.
+- Les valeurs de configuration et les noms de politique ne sont pas validés :
+  une politique mal orthographiée agit comme `always`, et une valeur de temps
+  non numérique ou nulle peut casser la boucle.
+- Après un redémarrage du superviseur, le code de sortie d'une cible adoptée
+  n'est pas disponible ; sa disparition est traitée comme un échec.
+- Le journal plat n'est pas rotaté.
+- Avec plus de quatre cibles, un arrêt propre peut dépasser le
+  `TimeoutStopSec` de 20 secondes du service ; systemd tue alors tout le
+  groupe de processus.
 - Pas d'option `--version` ni `--help` dans cette version. La version du
   paquet se lit avec `dpkg -s allwatch` ; une version future ajoutera ces
   options.
