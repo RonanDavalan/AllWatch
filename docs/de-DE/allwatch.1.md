@@ -17,26 +17,33 @@ allwatch - kleiner Prozess-Supervisor für Linux
 # BESCHREIBUNG
 
 **allwatch** ist ein kleiner Prozess-Supervisor, geschrieben in Bash. Er
-startet jedes konfigurierte Ziel im Vordergrund, merkt sich die vom Kernel
+startet jedes konfigurierte Ziel als Kindprozess, merkt sich die vom Kernel
 vergebene PID und beurteilt die Gesundheit des Ziels nur anhand von drei
-Quellen: der Prozess existiert in `/proc`, sein TCP-Port nimmt eine
-Verbindung an, und der Exit-Code, den er bei seinem Ende zurückgegeben hat.
+Quellen: der Prozess existiert in `/proc`, sein TCP-Port nimmt eine Verbindung
+an, und der Exit-Code, den er bei seinem Ende zurückgegeben hat. Das Ziel muss
+im Vordergrund bleiben; ein Ziel, das sich im Hintergrund ablöst, bricht die
+Eltern-Kind-Beziehung.
 
 Das Ziel ist eine Blackbox. Es registriert sich nicht bei AllWatch, sendet
 keine Statusmeldungen und muss nicht wissen, dass AllWatch existiert. Der
 Supervisor ist der Elternprozess, das Ziel ist das Kind.
 
-# OPTIONEN
+Die Konfiguration wird beim Start einmal gelesen. Standard ist
+`allwatch.conf` im aktuellen Verzeichnis; das erste Argument ersetzt sie.
 
 **--version**
 :   `allwatch 0.1.0` ausgeben und mit Exit-Code `0` beenden.
 
 **--diagnose** [*KONFIGURATION*]
 :   Die Konfiguration lesen, Version, Konfigurationspfad, Zustandsverzeichnis,
-    Journalpfad und die konfigurierten Ziele ausgeben und beenden. Startet und
-    prüft kein Ziel und schreibt weder Zustand noch Journal. Exit-Code `0`,
-    wenn die Konfiguration lesbar und die vorhandenen Zustands- und
-    Journalverzeichnisse nutzbar sind, sonst `1`.
+    Journalpfad sowie Kennung, Port und Richtlinie jedes konfigurierten Ziels
+    ausgeben und beenden. Es meldet außerdem, ob ein vorhandenes Zustands- und
+    Journalverzeichnis nutzbar ist. Startet und prüft kein Ziel und schreibt
+    weder Zustand noch Journal. Exit-Code `0`, wenn die Konfiguration lesbar
+    und die vorhandenen Zustands- und Journalverzeichnisse nutzbar sind, sonst
+    `1`.
+
+Die Optionen werden nur als erstes Argument erkannt.
 
 # KONFIGURATION
 
@@ -46,7 +53,8 @@ und Zeilen, die mit `#` beginnen, werden ignoriert.
 Engine-Parameter, je eine Zeile `SCHLÜSSEL=Wert`:
 
 **POLL_SECONDS**=*SEKUNDEN*
-:   Sekunden zwischen zwei Prüfungen (Standard `5`).
+:   Sekunden zwischen zwei Prüfungen (Standard `5`). Die Gnadenfrist bei
+    einem Hänger beträgt `2 * POLL_SECONDS`.
 
 **PROBE_TIMEOUT**=*SEKUNDEN*
 :   Sekunden, die der TCP-Port für die Sonde Zeit hat (Standard `3`).
@@ -58,23 +66,30 @@ Engine-Parameter, je eine Zeile `SCHLÜSSEL=Wert`:
 **RESTART_WINDOW**=*SEKUNDEN*
 :   Länge des Zeitfensters für die Neustartzählung (Standard `60`).
 
+Die Werte werden unverändert verwendet und nicht geprüft.
+
 Ziele, eines pro Zeile:
 
     id port richtlinie befehl...
 
 **id**
-:   Ein kurzer, eindeutiger Name für Zustandsdateien und Journalzeilen.
+:   Ein kurzer, eindeutiger Name für Zustandsdateien und Journalzeilen. Er
+    darf weder `/` noch `..` enthalten; AllWatch prüft ihn nicht.
 
 **port**
-:   Der TCP-Port, auf dem das Ziel lauscht, geprüft auf `127.0.0.1`.
+:   Der TCP-Port, auf dem das Ziel lauscht. Er wird auf `127.0.0.1` geprüft;
+    ein Ziel, das nur auf einer anderen Adresse lauscht, gilt als hängend.
 
 **richtlinie**
 :   `always`, `on-failure` oder `transient`.
 
 **befehl...**
-:   Der Rest der Zeile, an Leerzeichen getrennt (ohne Anführungszeichen),
-    im Vordergrund aus dem Verzeichnis gestartet, in dem **allwatch**
-    gestartet wurde.
+:   Der Rest der Zeile, an Leerzeichen getrennt (ohne Anführungszeichen), als
+    Kindprozess aus dem Verzeichnis gestartet, in dem **allwatch** gestartet
+    wurde. Der Befehl wird nicht über eine Shell ausgeführt: Pipes,
+    Umleitungen und Variablenexpansion werden nicht interpretiert; solche
+    Logik gehört in ein ausführbares Skript. Beim Debian-Dienst absolute
+    Pfade verwenden.
 
 Richtlinien:
 
@@ -99,68 +114,95 @@ neu. Die Datei stoppt ein laufendes Ziel nicht von selbst.
 
 # ZUSTÄNDE
 
-AllWatch meldet vier gewöhnliche Zustände, dazu einen Ausnahmezustand der
-Sperre:
+Der Supervisor unterscheidet vier gewöhnliche Zustände und einen
+Ausnahmezustand der Sperre. Es gibt keinen Statusbefehl: Ein Zustand ist über
+den Prozess, den Port und das flache Journal sichtbar.
 
 **Läuft**
 :   Der Prozess existiert und sein Port nimmt eine Verbindung an.
 
 **Hängt**
-:   Der Prozess existiert, aber sein Port antwortet nicht. Nach einer
-    Gnadenfrist sendet AllWatch `SIGTERM`, wartet bis zu 5 Sekunden auf das
-    Ende, sendet bei Bedarf `SIGKILL` und behandelt das Ziel als fehlerhaft.
+:   Der Prozess existiert, aber sein Port antwortet nicht. AllWatch markiert
+    das Ziel bei der ersten fehlgeschlagenen Sonde als verdächtig und wartet
+    `2 * POLL_SECONDS` Sekunden. Ist der Port weiterhin geschlossen, sendet es
+    `SIGTERM`, wartet etwa 5 Sekunden auf das Ende, sendet bei Bedarf `SIGKILL`
+    und behandelt das Ziel als fehlerhaft.
 
 **Abgestürzt**
 :   Der Prozess ist ohne bewusstes Ende verschwunden. AllWatch liest den
-    Exit-Code und startet das Ziel neu, wenn seine Richtlinie es verlangt.
-    Bei einem Ziel, das nach einem Neustart des Supervisors übernommen wurde,
-    ist der Exit-Code nicht verfügbar; sein Verschwinden gilt als Fehler.
+    Exit-Code und startet das Ziel neu, wenn seine Richtlinie es verlangt. Bei
+    einem Ziel, das nach einem Neustart des Supervisors übernommen wurde, ist
+    der Exit-Code nicht verfügbar; sein Verschwinden gilt als Fehler.
 
 **Beendet**
 :   Das Ziel ist zu Ende und seine Richtlinie lässt es gestoppt, oder ein
-    Stopp-Flag des Betreibers wurde berücksichtigt. Die Zustandsdatei wird
-    entfernt.
+    Stopp-Flag des Betreibers wurde berücksichtigt. Die PID-Datei und die
+    Stopp-Datei werden entfernt, und das Ziel wird bis zum Neustart des
+    Supervisors nicht mehr überwacht.
 
 **Gesperrt (VERROU_CRITIQUE)**
 :   Das Ziel hat `MAX_RESTARTS` Neustarts innerhalb von `RESTART_WINDOW`
     erreicht. AllWatch beendet die Neustarts, schreibt eine Warnung und
-    entfernt die Zustandsdatei. Die anderen Ziele laufen weiter.
+    entfernt die PID-Datei. Die anderen Ziele laufen weiter. Die Sperre dauert
+    bis zum Neustart des Supervisors; das Ziel wird nicht automatisch erneut
+    versucht.
 
 # DATEIEN
 
 */tmp/allwatch-runtime*
-:   Standard-Zustandsverzeichnis: eine Datei `id.pid` und eine Datei
-    `id.fails` pro Ziel; eine Datei `id.stop` wird vom Betreiber angelegt,
-    um ein bewusstes Ende zu verlangen. AllWatch entfernt beim Stoppen seine
+:   Standard-Zustandsverzeichnis eines manuellen Laufs. Es enthält eine Datei
+    `id.pid` und eine Datei `id.fails` pro Ziel; eine Datei `id.stop` wird vom
+    Betreiber angelegt, um ein bewusstes Ende zu verlangen. Das Verzeichnis
+    wird mit Modus `0700` angelegt, wenn es fehlt; ein vorhandenes Verzeichnis
+    muss dem aktuellen Benutzer gehören. AllWatch entfernt beim Stoppen seine
     eigenen Dateien `.pid`, `.stop` und `.fails`; andere Dateien bleiben. Das
     Verzeichnis lässt sich mit der Umgebungsvariable `ALLWATCH_RUNTIME`
     ändern.
 
-*$XDG_STATE_HOME/allwatch/allwatch.log*, *$HOME/.local/state/allwatch/allwatch.log*
+`$XDG_STATE_HOME/allwatch/allwatch.log`, `$HOME/.local/state/allwatch/allwatch.log`
 :   Flaches Ereignisjournal, eine Zeile pro Ereignis (`Datum id Ereignis`).
     Das Verzeichnis wird bei Bedarf angelegt. AllWatch rotiert das Journal
     nicht.
 
+*allwatch.conf*
+:   Standard-Konfigurationsdatei im aktuellen Verzeichnis, wenn kein Argument
+    angegeben ist.
+
 */etc/allwatch/allwatch.conf*
-:   Konfiguration des Debian-Dienstes, vom Paket `allwatch` installiert.
+:   Konfiguration des Debian-Dienstes, vom Paket `allwatch` als conffile
+    installiert.
 
 */run/allwatch*
 :   Zustandsverzeichnis des Debian-Dienstes (`ALLWATCH_RUNTIME`), bei jedem
-    Start neu angelegt und bei jedem Stopp geleert.
+    Dienststart angelegt und beim Stopp entfernt.
 
 */var/lib/allwatch/allwatch/allwatch.log*
-:   Journal des Debian-Dienstes (`XDG_STATE_HOME=/var/lib/allwatch`).
+:   Journal des Debian-Dienstes (`XDG_STATE_HOME=/var/lib/allwatch`). systemd
+    legt `/var/lib/allwatch` an; das Skript legt sein Unterverzeichnis
+    `allwatch` an.
+
+*/usr/bin/allwatch*
+:   Installiertes Programm (Debian-Paket).
+
+*/usr/lib/systemd/system/allwatch.service*
+:   Von Debian-Paket installierte systemd-Unit.
 
 # DIENST
 
 Das Debian-Paket installiert `allwatch.service`; dieser startet **allwatch**
-als Systembenutzer `allwatch` mit `/etc/allwatch/allwatch.conf`. systemd
-startet den Supervisor nach jedem Ende neu (`Restart=always`, ohne
-Startbegrenzung); AllWatch startet danach seine Ziele gemäß ihrer Richtlinie
-neu. Die Konfiguration wird nicht im laufenden Betrieb neu geladen: nach
-einer Änderung ausführen:
+als Systembenutzer `allwatch` mit `/etc/allwatch/allwatch.conf`. Mit der
+ausgelieferten Konfiguration startet der Dienst ohne aktives Ziel und wartet.
+systemd startet den Supervisor nach jedem Ende außer einem ausdrücklichen
+`systemctl stop` neu (`Restart=always`, ohne Startbegrenzung). AllWatch
+startet danach seine Ziele gemäß ihrer Richtlinie neu. Die Konfiguration wird nicht im laufenden Betrieb neu geladen: nach einer
+Änderung ausführen:
 
     systemctl restart allwatch
+
+Die Befehle der Ziele erben Benutzer, Gruppe und Arbeitsverzeichnis
+(`/var/lib/allwatch`) des Dienstes. Um ein Ziel unter einem anderen Benutzer
+auszuführen, ein Drop-in mit `systemctl edit allwatch` anlegen und `User=` und
+`Group=` setzen.
 
 Nützliche Befehle:
 
@@ -168,23 +210,42 @@ Nützliche Befehle:
     systemctl start allwatch
     systemctl stop allwatch
     systemctl restart allwatch
+    systemctl enable allwatch
+    systemctl disable allwatch
     journalctl -u allwatch -f
 
 # SIGNALE
 
 **SIGTERM**, **SIGINT**
-:   Der Supervisor stoppt jedes Ziel mit `SIGTERM`, wartet auf dessen Ende,
-    sendet nach 5 Sekunden bei Bedarf `SIGKILL`, entfernt seine
-    Zustandsdateien und beendet sich (`130` für `SIGINT`, `143` für
-    `SIGTERM`).
+:   Der Supervisor stoppt jedes noch vorhandene Ziel mit `SIGTERM`, wartet
+    etwa 5 Sekunden auf dessen Ende, sendet bei Bedarf `SIGKILL`, entfernt
+    seine Dateien `.pid`, `.stop` und `.fails`, schreibt `allwatch ARRET` ins
+    Journal und beendet sich (`130` für `SIGINT`, `143` für `SIGTERM`).
 
 **SIGTERM** an ein Ziel
-:   Das Ziel muss innerhalb von 5 Sekunden mit Exit-Code 0 enden. Ein Ziel,
-    das nach einem Hänger neutralisiert werden musste, gilt als fehlerhaft
-    und wird gemäß seiner Richtlinie neu gestartet, auch wenn es nach dem
-    Signal mit Code 0 endet.
+:   Das Ziel behandelt das Signal; AllWatch beobachtet den resultierenden
+    Exit-Code, wenn es das Ziel gestartet hat, und wendet die Richtlinie des
+    Ziels an. Bei einem nach einem Supervisor-Neustart übernommenen Ziel ist
+    der Exit-Code nicht verfügbar; sein Verschwinden gilt als Fehler. Der
+    Zielvertrag verlangt ein Ende innerhalb von 5 Sekunden mit Exit-Code 0.
+    Wenn AllWatch ein hängendes Ziel selbst neutralisiert, gilt das Ziel als
+    fehlerhaft, auch wenn es später mit Code 0 endet.
 
-# EXIT-STATUS
+**SIGHUP**
+:   Nicht abgefangen. Es lädt die Konfiguration nicht neu und beendet
+    normalerweise den Supervisor; systemd startet ihn dann neu. Zum Neuladen
+    der Konfiguration `systemctl restart allwatch` verwenden.
+
+**SIGKILL**
+:   Kann nicht abgefangen werden. AllWatch führt seine Bereinigung nicht aus.
+    Bei einem manuellen Lauf überleben die Ziele, und das Zustandsverzeichnis
+    bleibt erhalten; der nächste Supervisor kann lebende Ziele übernehmen.
+    Beim Debian-Dienst verwaltet systemd die Prozessgruppe und entfernt
+    `/run/allwatch` beim Stopp der Unit; dem nächsten Supervisor können die
+    PID-Dateien fehlen, und er kann Doppelstarts verursachen. Nach einem
+    `SIGKILL` nicht auf eine Übernahme verlassen.
+
+# RÜCKGABEWERT
 
 **0**
 :   Wird von `--version` und einem erfolgreichen `--diagnose` zurückgegeben.
@@ -194,8 +255,9 @@ Nützliche Befehle:
 **1**
 :   Konfigurationsdatei nicht lesbar, Zustandsverzeichnis gehört nicht dem
     aktuellen Benutzer, eine Pfadprüfung von `--diagnose` ist fehlgeschlagen,
-    oder ein fataler Laufzeitfehler (ungültiger Parameterwert, nicht
-    beschreibbares Zustands- oder Journalverzeichnis).
+    oder ein fataler Laufzeitfehler (zum Beispiel ein nicht numerischer
+    `POLL_SECONDS` oder ein nicht beschreibbares Zustands- oder
+    Journalverzeichnis).
 
 **130**
 :   Unterbrochen durch `SIGINT`.
@@ -203,11 +265,20 @@ Nützliche Befehle:
 **143**
 :   Beendet durch `SIGTERM`.
 
+Der Exit-Code eines Ziels wird vom Supervisor für die Richtlinie verwendet,
+aber nicht als Exit-Code des Supervisors zurückgegeben.
+
 # BEISPIELE
 
 Den Supervisor mit der Beispielkonfiguration aus dem Quelltext starten:
 
     ./allwatch.sh allwatch.conf
+
+Die Programmversion ausgeben und eine Konfiguration prüfen, ohne sie zu
+starten:
+
+    ./allwatch.sh --version
+    ./allwatch.sh --diagnose allwatch.conf
 
 Konfiguration mit einem Ziel:
 
@@ -222,28 +293,70 @@ Mit dem Debian-Paket absolute Pfade verwenden, weil der Dienst aus
 
     demo 9001 on-failure /usr/share/doc/allwatch/examples/dummy-target.sh 9001
 
+Nach der Installation des Pakets die Beispielkonfiguration kopieren und den
+Dienst neu starten:
+
+    sudo cp /usr/share/doc/allwatch/examples/allwatch.conf.example \
+       /etc/allwatch/allwatch.conf
+    sudo systemctl restart allwatch
+    systemctl status allwatch
+    journalctl -u allwatch -f
+
+Die Testmaquette akzeptiert `SIGUSR1` (Lauschen beenden, am Leben bleiben),
+`SIGUSR2` (mit Exit-Code 1 abstürzen) und `SIGTERM` (sauberes Ende mit Code
+0). Um ein bewusstes Ende eines Ziels zu verlangen, seine Stopp-Datei als
+Dienstbenutzer anlegen:
+
+    sudo -u allwatch touch /run/allwatch/demo.stop
+
 # GRENZEN
 
 - Kein Neuladen der Konfiguration im laufenden Betrieb.
 - Keine Auswertung von Anwendungsjournalen für Neustarts.
 - Keine Prüfung über Fenstertitel, X11 oder Wayland.
 - Keine Überwachung eines Ziels, das sich im Hintergrund ablöst.
-- Konfigurationswerte und Richtliniennamen werden nicht geprüft: Eine falsch
-  geschriebene Richtlinie wirkt wie `always`, und ein nicht numerischer oder
-  Null-Zeitwert kann die Schleife abbrechen.
+- Der Befehl wird nicht über eine Shell ausgeführt: keine Anführungszeichen,
+  Pipes, Umleitungen oder Variablenexpansion.
+- Konfigurationswerte und Richtliniennamen werden nicht geprüft. Ein
+  `POLL_SECONDS` von null lässt die Schleife ohne Ruhepause drehen; ein nicht
+  numerischer `POLL_SECONDS` beendet den Supervisor mit Exit-Code `1`; ein
+  nicht numerischer `PROBE_TIMEOUT` lässt jede Sonde fehlschlagen; eine falsch
+  geschriebene Richtlinie wirkt wie `always`; ein nicht numerischer
+  `MAX_RESTARTS` oder `RESTART_WINDOW` kann verhindern, dass die
+  Neustartgrenze erreicht wird.
+- Eine `id` mit `/` oder `..` kann aus dem Zustandsverzeichnis ausbrechen;
+  AllWatch prüft sie nicht.
 - Nach einem Neustart des Supervisors ist der Exit-Code eines übernommenen
-  Ziels nicht verfügbar; sein Verschwinden gilt als Fehler.
+  Ziels nicht verfügbar; sein Verschwinden gilt als Fehler. Die Übernahme
+  vergleicht eine Teilzeichenkette von `/proc/<pid>/cmdline`, nicht die
+  tatsächliche ausführbare Datei; eine wiederverwendete PID mit derselben
+  Befehlszeile könnte übernommen werden.
+- Ein Ziel, das nur auf einer anderen Adresse als `127.0.0.1` lauscht, gilt
+  als hängend; die Sonde ist eine TCP-Verbindung zu `127.0.0.1`.
+- Ein `SIGKILL` des Supervisors führt die Bereinigung nicht aus. Bei einem
+  manuellen Lauf bleiben die Zustandsdateien erhalten, und der nächste
+  Supervisor kann lebende Ziele übernehmen; beim Dienst entfernt systemd
+  `/run/allwatch` beim Stopp, sodass der nächste Supervisor sie nicht
+  übernimmt und Doppelstarts verursachen kann.
 - Das flache Journal wird nicht rotiert.
-- Bei mehr als vier Zielen kann ein sauberes Stoppen das `TimeoutStopSec`
-  von 20 Sekunden des Dienstes überschreiten; systemd beendet dann die ganze
-  Prozessgruppe.
-- `--help` ist nicht implementiert; die Handbuchseite ist die Referenz.
+- Bei vier oder mehr Zielen, die jeweils die vollen 5 Sekunden Gnadenfrist
+  nutzen, kann ein sauberes Stoppen das `TimeoutStopSec` von 20 Sekunden des
+  Dienstes überschreiten; systemd beendet dann die ganze Prozessgruppe.
+- `--help` ist nicht implementiert. Es wird als Name einer
+  Konfigurationsdatei gelesen und endet mit Exit-Code `1` und einem
+  Konfigurationsfehler; die Handbuchseite ist die Referenz.
+- `--version` und `--diagnose` werden nur als erstes Argument erkannt.
 - `--diagnose` prüft Konfiguration und Pfade; es startet und prüft kein Ziel,
   beweist also nicht, dass ein Ziel gesund ist.
+- Die Konfiguration ist vertrauenswürdige Eingabe: Die Befehle der Ziele
+  laufen mit den Rechten des Dienstbenutzers. `/etc/allwatch/allwatch.conf`
+  gegen nicht-root-Schreibzugriff schützen. AllWatch isoliert die Ziele nicht
+  in einer Sandbox.
 
 # SIEHE AUCH
 
-**systemd.service**(5), **systemd.exec**(5), **proc**(5)
+**bash**(1), **systemctl**(1), **journalctl**(1), **systemd.service**(5),
+**systemd.exec**(5), **proc**(5), **timeout**(1)
 
 # LIZENZ
 
