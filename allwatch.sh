@@ -18,27 +18,29 @@ VERSION="0.1.0"
 MODE="run"
 case "${1:-}" in
   --version) printf 'allwatch %s\n' "$VERSION"; exit 0 ;;
-  --help) printf 'Usage : allwatch [CONFIGURATION]\n        allwatch --version\n        allwatch --diagnose [CONFIGURATION]\n        allwatch --help\n\nAllWatch supervise des cibles au premier plan : noyau (/proc), port TCP et code de sortie.\nOptions : --version ; --diagnose [CONF] (lecture sans lancement) ; --help.\nVariables : ALLWATCH_RUNTIME (état) ; XDG_STATE_HOME (journal). Voir allwatch(1).\n'
+  --help) printf 'Usage : allwatch [CONFIGURATION]\n        allwatch --version\n        allwatch --diagnose [CONFIGURATION]\n        allwatch --help\n\nAllWatch supervise des cibles au premier plan : noyau (/proc), port TCP et code de sortie.\nOptions : --version ; --diagnose [CONF] (lecture sans lancement) ; --help.\nVariables : ALLWATCH_RUNTIME (état) ; XDG_STATE_HOME (journal).\nConfiguration : ON_FREEZE=restart|alert (cible gelée : neutralisée et relancée, ou signalée sans signal). Voir allwatch(1).\n'
     exit 0 ;;
   --diagnose) MODE="diagnose"; shift ;;
 esac
 CONF="${1:-allwatch.conf}"
 RT="${ALLWATCH_RUNTIME:-/tmp/allwatch-runtime}"
 LOG="${XDG_STATE_HOME:-$HOME/.local/state}/allwatch/allwatch.log"
-POLL_SECONDS=5 PROBE_TIMEOUT=3 MAX_RESTARTS=5 RESTART_WINDOW=60
-declare -A PORT POL CMD FIN SUSPECT CHILD
+POLL_SECONDS=5 PROBE_TIMEOUT=3 MAX_RESTARTS=5 RESTART_WINDOW=60 ON_FREEZE=restart
+declare -A PORT POL CMD FIN SUSPECT CHILD GEL
 IDS=()
 
 [ -r "$CONF" ] || { echo "allwatch: configuration illisible : $CONF" >&2; exit 1; }
 while read -r id port pol cmd || [ -n "$id" ]; do
   case "$id" in
     '' | '#'*) continue ;;
-    POLL_SECONDS=* | PROBE_TIMEOUT=* | MAX_RESTARTS=* | RESTART_WINDOW=*) declare "$id"; continue ;;
+    POLL_SECONDS=* | PROBE_TIMEOUT=* | MAX_RESTARTS=* | RESTART_WINDOW=* | ON_FREEZE=*) declare "$id"; continue ;;
   esac
   read -ra argv <<<"$cmd"
   IDS+=("$id"); PORT[$id]=$port; POL[$id]=$pol; CMD[$id]="${argv[*]}"
-  FIN[$id]=0; SUSPECT[$id]=0; CHILD[$id]=0
+  FIN[$id]=0; SUSPECT[$id]=0; CHILD[$id]=0; GEL[$id]=0
 done <"$CONF"
+# Une faute de frappe ne doit jamais décider seule de tuer ou d'épargner une cible gelée.
+case "$ON_FREEZE" in restart | alert) ;; *) echo "allwatch: ON_FREEZE vaut restart ou alert, pas '$ON_FREEZE'" >&2; exit 1 ;; esac
 # Deux sondes en échec au moins avant de neutraliser : un ralentissement passager n'en coûte pas une.
 GRACE=$((2 * POLL_SECONDS))
 
@@ -49,6 +51,7 @@ diagnostiquer() {
   printf 'configuration: %s\n' "$CONF"
   printf 'runtime: %s\n' "$RT"
   printf 'journal: %s\n' "$LOG"
+  printf 'on_freeze: %s\n' "$ON_FREEZE"
   printf 'targets: %d\n' "${#IDS[@]}"
   for id in "${IDS[@]}"; do
     printf '  %s port=%s policy=%s\n' "$id" "${PORT[$id]}" "${POL[$id]}"
@@ -142,15 +145,24 @@ evaluer() {
   if [ -f "$RT/$id.pid" ]; then pid=$(<"$RT/$id.pid"); fi
 
   if existe "$id" "$pid"; then
-    if sonde "${PORT[$id]}"; then SUSPECT[$id]=0; return 0; fi
+    if sonde "${PORT[$id]}"; then
+      SUSPECT[$id]=0
+      if [ "${GEL[$id]}" = 1 ]; then GEL[$id]=0; journal "$id" RETABLI; fi
+      return 0
+    fi
     if [ "${SUSPECT[$id]}" = 0 ]; then
       SUSPECT[$id]=$EPOCHSECONDS; journal "$id" PLANTE; return 0
     fi
     if ((EPOCHSECONDS - ${SUSPECT[$id]} < GRACE)); then return 0; fi
+    # Une cible peut écrire dans une base sans répondre : l'opérateur choisit de ne pas la tuer.
+    if [ "$ON_FREEZE" = alert ]; then
+      if [ "${GEL[$id]}" = 0 ]; then GEL[$id]=1; journal "$id" "ALERTE GEL : port muet, cible vivante, aucune neutralisation (ON_FREEZE=alert)"; fi
+      return 0
+    fi
     neutraliser "$id" "$pid"; force=1
   fi
 
-  SUSPECT[$id]=0
+  SUSPECT[$id]=0; GEL[$id]=0
   # Un PID repris d'un superviseur précédent n'est pas un enfant : pas de code de sortie, donc un échec.
   if [ "${CHILD[$id]}" = 1 ]; then wait "$pid" 2>/dev/null && rc=0 || rc=$?; fi
   if [ "$force" = 1 ]; then rc=1; fi
