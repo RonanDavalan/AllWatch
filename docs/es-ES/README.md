@@ -27,7 +27,7 @@ en cuatro idiomas. Descargue el paquete y `SHA256SUMS` desde la [página de
 descarga](https://allwatch.davalan.fr/es/descarga/) y ejecute:
 
 ```bash
-sudo apt install ./allwatch_0.1.0-3_all.deb
+sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
 Nivel anunciado: **instalación y diagnóstico validados en contenedor**, en
@@ -112,9 +112,12 @@ AllWatch es el padre, el objetivo es el hijo. Cada pocos segundos examina cada
 objetivo y lo sitúa en uno de cuatro estados:
 
 - **En marcha**: el proceso existe y su puerto acepta una conexión.
-- **Bloqueado**: el proceso existe pero su puerto no responde. AllWatch envía
-  `SIGTERM`, espera 5 segundos, envía `SIGKILL` si hace falta y considera el
-  objetivo fallido.
+- **Bloqueado**: el proceso existe pero su puerto no responde. Con
+  `ON_FREEZE=restart` (el valor por defecto), AllWatch envía `SIGTERM`, espera
+  5 segundos, envía `SIGKILL` si hace falta y considera el objetivo fallido.
+  Con `ON_FREEZE=alert`, no envía ninguna señal, registra `ALERTE GEL` una vez,
+  deja el objetivo vigilado y registra `RETABLI` cuando el puerto vuelve a
+  responder.
 - **Caído**: el proceso desapareció sin un cierre deliberado. AllWatch lee el
   código de salida y reinicia el objetivo si su política lo permite.
 - **Terminado**: el objetivo terminó y su política no pide reinicio, o se
@@ -130,6 +133,7 @@ vacías y las que empiezan por `#` se ignoran. Parámetros del motor, un
 - `PROBE_TIMEOUT=3`: segundos que tiene un puerto para responder a la sonda.
 - `MAX_RESTARTS=5`: reinicios permitidos en la ventana siguiente.
 - `RESTART_WINDOW=60`: duración de esa ventana, en segundos.
+- `ON_FREEZE=restart`: un objetivo bloqueado se neutraliza y se reinicia; `alert` lo deja intacto y registra `ALERTE GEL`. Cualquier otro valor se rechaza al arrancar con código 1.
 
 Objetivos, uno por línea:
 

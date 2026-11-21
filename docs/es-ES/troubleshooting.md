@@ -10,7 +10,7 @@ sudo journalctl -u allwatch -n 50 --no-pager
 sudo tail -n 50 /var/lib/allwatch/allwatch/allwatch.log
 ```
 
-Las líneas del diario son `fecha id evento`. Los eventos son `DEMARRAGE`, `DEMARRE`, `ADOPTE`, `PLANTE`, `NEUTRALISE SIGTERM`, `NEUTRALISE SIGKILL`, `CRASHE code=N`, `RELANCE`, `ALERTE VERROU_CRITIQUE`, `QUITTE` y `ARRET`.
+Las líneas del diario son `fecha id evento`. Los eventos son `DEMARRAGE`, `DEMARRE`, `ADOPTE`, `PLANTE`, `ALERTE GEL`, `RETABLI`, `NEUTRALISE SIGTERM`, `NEUTRALISE SIGKILL`, `CRASHE code=N`, `RELANCE`, `ALERTE VERROU_CRITIQUE`, `QUITTE` y `ARRET`.
 
 ## El servicio no arranca
 
@@ -32,7 +32,7 @@ Las líneas del diario son `fecha id evento`. Los eventos son `DEMARRAGE`, `DEMA
 - La sonda es `timeout 3 bash -c ': > /dev/tcp/127.0.0.1/9001'`. El objetivo debe escuchar en `127.0.0.1` (o `0.0.0.0`) en el puerto declarado. Un objetivo que solo escucha en otra dirección se considera bloqueado.
 - Puerto equivocado en `/etc/allwatch/allwatch.conf`; compruebe con `ss -ltnp | grep 9001`.
 - El objetivo es más lento que `PROBE_TIMEOUT=3`; aumente el valor en la configuración y reinicie el servicio.
-- El objetivo está vivo pero su escucha está cerrada; es exactamente el estado bloqueado. AllWatch envía `SIGTERM`, espera 5 segundos, envía `SIGKILL` y lo reinicia.
+- El objetivo está vivo pero su escucha está cerrada; es exactamente el estado bloqueado. Con `ON_FREEZE=restart` (por defecto), AllWatch envía `SIGTERM`, espera 5 segundos, envía `SIGKILL` y lo reinicia. Con `ON_FREEZE=alert`, registra `ALERTE GEL` una vez y deja el objetivo en ejecución; `RETABLI` se registra cuando el puerto vuelve a responder.
 
 ## `--diagnose` devuelve 0 pero el objetivo no está sano
 

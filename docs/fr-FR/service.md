@@ -23,7 +23,7 @@ Le paquet crée l'utilisateur et le groupe système `allwatch` (domicile `/var/l
 ## Installer
 
 ```bash
-sudo apt install ./allwatch_0.1.0-3_all.deb
+sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
 Le paquet installe le programme et l'unité, active `allwatch.service`, le démarre et livre une configuration sans cible active.
@@ -35,7 +35,7 @@ dpkg -s allwatch | grep -E '^(Status|Version):'
 allwatch --version
 ```
 
-`allwatch --version` affiche `allwatch 0.1.0` ; la version du paquet est `0.1.0-3`.
+`allwatch --version` affiche `allwatch 0.1.0` ; la version du paquet est `0.1.0-4`.
 
 ## Chemins et fichiers
 
@@ -74,6 +74,10 @@ bash -c ': > /dev/tcp/127.0.0.1/9001' && echo "le port 9001 répond"
 
 L'utilisateur du service doit pouvoir exécuter la commande. Employez des chemins absolus : la commande est découpée aux espaces, sans guillemets, et n'est pas exécutée par un shell. Pour des arguments contenant des espaces ou de la syntaxe shell, écrivez un script d'enveloppe et appelez-le.
 
+## Cible gelée : restart ou alert
+
+`ON_FREEZE` décide du sort d'une cible encore vivante dont le port TCP ne répond plus après le délai de grâce. `ON_FREEZE=restart` (le défaut livré) envoie `SIGTERM`, attend environ cinq secondes, envoie `SIGKILL` si nécessaire, puis relance la cible selon sa politique. `ON_FREEZE=alert` n'envoie aucun signal : il journalise `ALERTE GEL` une fois, laisse la cible vivante et journalise `RETABLI` quand le port répond de nouveau. Un crash suit la politique de la cible dans les deux cas. Toute autre valeur est refusée au démarrage avec le code 1.
+
 ## Commandes du service
 
 ```bash
@@ -99,7 +103,7 @@ sudo -u allwatch env ALLWATCH_RUNTIME=/run/allwatch \
   allwatch --diagnose /etc/allwatch/allwatch.conf
 ```
 
-Il affiche la version, le chemin de la configuration, le chemin d'exécution, le chemin du journal et, pour chaque cible, son identifiant, son port et sa politique. Il rend `0` quand la configuration est lisible et que les répertoires d'exécution et de journal existants sont utilisables, `1` sinon. Il ne lance aucune cible et ne sonde aucun port.
+Il affiche la version, le chemin de la configuration, le chemin d'exécution, le chemin du journal, la conduite sur gel et, pour chaque cible, son identifiant, son port et sa politique. Il rend `0` quand la configuration est lisible et que les répertoires d'exécution et de journal existants sont utilisables, `1` sinon. Il ne lance aucune cible et ne sonde aucun port.
 
 ## Arrêter une cible sans arrêter le service
 
@@ -138,7 +142,7 @@ Les commandes des cibles héritent de cette identité. Le fichier de configurati
 ## Mettre à jour
 
 ```bash
-sudo apt install ./allwatch_0.1.0-3_all.deb
+sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
 `/etc/allwatch/allwatch.conf` est conservé ; si la version du paquet le modifie, dpkg demande quelle version garder. Le service est redémarré après la mise à jour s'il était actif. `/var/lib/allwatch` et son journal restent.

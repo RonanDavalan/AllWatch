@@ -28,7 +28,7 @@ Handbuchseite in vier Sprachen. Laden Sie das Paket und `SHA256SUMS` von der
 führen Sie aus:
 
 ```bash
-sudo apt install ./allwatch_0.1.0-3_all.deb
+sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
 Angekündigte Stufe: **Installation und Diagnose im Container validiert**, auf
@@ -116,9 +116,12 @@ AllWatch ist der Elternprozess, das Ziel ist das Kind. Alle paar Sekunden
 prüft er jedes Ziel und ordnet es einem von vier Zuständen zu:
 
 - **Läuft**: Der Prozess existiert und sein Port nimmt eine Verbindung an.
-- **Hängt**: Der Prozess existiert, aber sein Port antwortet nicht. AllWatch
-  sendet `SIGTERM`, wartet 5 Sekunden, sendet bei Bedarf `SIGKILL` und
-  behandelt das Ziel danach als fehlgeschlagen.
+- **Hängt**: Der Prozess existiert, aber sein Port antwortet nicht. Mit
+  `ON_FREEZE=restart` (Standard) sendet AllWatch `SIGTERM`, wartet 5 Sekunden,
+  sendet bei Bedarf `SIGKILL` und behandelt das Ziel danach als fehlgeschlagen.
+  Mit `ON_FREEZE=alert` sendet es kein Signal, schreibt einmal `ALERTE GEL`,
+  lässt das Ziel überwacht und schreibt `RETABLI`, wenn der Port wieder
+  antwortet.
 - **Abgestürzt**: Der Prozess ist ohne geordnetes Ende verschwunden. AllWatch
   liest den Exit-Code und startet das Ziel gemäß seiner Richtlinie neu.
 - **Beendet**: Das Ziel ist beendet und seine Richtlinie verlangt keinen
@@ -134,6 +137,7 @@ und Zeilen, die mit `#` beginnen, werden ignoriert. Motorenparameter, ein
 - `PROBE_TIMEOUT=3`: Sekunden, die ein Port für die Probe hat.
 - `MAX_RESTARTS=5`: erlaubte Neustarts im folgenden Fenster.
 - `RESTART_WINDOW=60`: Länge dieses Fensters in Sekunden.
+- `ON_FREEZE=restart`: Ein hängendes Ziel wird neutralisiert und neu gestartet; `alert` lässt es unberührt und schreibt `ALERTE GEL`. Jeder andere Wert wird beim Start mit Exit-Code 1 zurückgewiesen.
 
 Ziele, eines pro Zeile:
 

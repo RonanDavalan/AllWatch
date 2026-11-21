@@ -10,7 +10,7 @@ sudo journalctl -u allwatch -n 50 --no-pager
 sudo tail -n 50 /var/lib/allwatch/allwatch/allwatch.log
 ```
 
-Die Protokollzeilen sind `Datum id Ereignis`. Die Ereignisse sind `DEMARRAGE`, `DEMARRE`, `ADOPTE`, `PLANTE`, `NEUTRALISE SIGTERM`, `NEUTRALISE SIGKILL`, `CRASHE code=N`, `RELANCE`, `ALERTE VERROU_CRITIQUE`, `QUITTE` und `ARRET`.
+Die Protokollzeilen sind `Datum id Ereignis`. Die Ereignisse sind `DEMARRAGE`, `DEMARRE`, `ADOPTE`, `PLANTE`, `ALERTE GEL`, `RETABLI`, `NEUTRALISE SIGTERM`, `NEUTRALISE SIGKILL`, `CRASHE code=N`, `RELANCE`, `ALERTE VERROU_CRITIQUE`, `QUITTE` und `ARRET`.
 
 ## Der Dienst startet nicht
 
@@ -32,7 +32,7 @@ Die Protokollzeilen sind `Datum id Ereignis`. Die Ereignisse sind `DEMARRAGE`, `
 - Die Sonde ist `timeout 3 bash -c ': > /dev/tcp/127.0.0.1/9001'`. Das Ziel muss auf `127.0.0.1` (oder `0.0.0.0`) am deklarierten Port lauschen. Ein Ziel, das nur auf einer anderen Adresse lauscht, gilt als blockiert.
 - Falscher Port in `/etc/allwatch/allwatch.conf`; prüfen Sie mit `ss -ltnp | grep 9001`.
 - Das Ziel ist langsamer als `PROBE_TIMEOUT=3`; erhöhen Sie den Wert in der Konfiguration und starten Sie den Dienst neu.
-- Das Ziel lebt, aber sein Listener ist geschlossen; genau das ist der Blockierzustand. AllWatch sendet `SIGTERM`, wartet 5 Sekunden, sendet `SIGKILL` und startet das Ziel neu.
+- Das Ziel lebt, aber sein Listener ist geschlossen; genau das ist der Blockierzustand. Mit `ON_FREEZE=restart` (Standard) sendet AllWatch `SIGTERM`, wartet 5 Sekunden, sendet `SIGKILL` und startet das Ziel neu. Mit `ON_FREEZE=alert` schreibt es einmal `ALERTE GEL` und lässt das Ziel laufen; `RETABLI` wird geschrieben, wenn der Port wieder antwortet.
 
 ## `--diagnose` endet mit 0, aber das Ziel ist ungesund
 

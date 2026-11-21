@@ -10,7 +10,7 @@ sudo journalctl -u allwatch -n 50 --no-pager
 sudo tail -n 50 /var/lib/allwatch/allwatch/allwatch.log
 ```
 
-The log lines are `date id event`. The events are `DEMARRAGE`, `DEMARRE`, `ADOPTE`, `PLANTE`, `NEUTRALISE SIGTERM`, `NEUTRALISE SIGKILL`, `CRASHE code=N`, `RELANCE`, `ALERTE VERROU_CRITIQUE`, `QUITTE` and `ARRET`.
+The log lines are `date id event`. The events are `DEMARRAGE`, `DEMARRE`, `ADOPTE`, `PLANTE`, `ALERTE GEL`, `RETABLI`, `NEUTRALISE SIGTERM`, `NEUTRALISE SIGKILL`, `CRASHE code=N`, `RELANCE`, `ALERTE VERROU_CRITIQUE`, `QUITTE` and `ARRET`.
 
 ## The service does not start
 
@@ -32,7 +32,7 @@ The log lines are `date id event`. The events are `DEMARRAGE`, `DEMARRE`, `ADOPT
 - The probe is `timeout 3 bash -c ': > /dev/tcp/127.0.0.1/9001'`. The target must listen on `127.0.0.1` (or `0.0.0.0`) on the declared port. A target that listens only on another address is considered hung.
 - Wrong port in `/etc/allwatch/allwatch.conf`; check with `ss -ltnp | grep 9001`.
 - The target is slower than `PROBE_TIMEOUT=3`; raise it in the configuration, then restart the service.
-- The target is alive but its listener is closed; this is exactly the hang state. AllWatch sends `SIGTERM`, waits 5 seconds, then `SIGKILL`, and restarts it.
+- The target is alive but its listener is closed; this is exactly the hang state. With `ON_FREEZE=restart` (the default), AllWatch sends `SIGTERM`, waits 5 seconds, then `SIGKILL`, and restarts it. With `ON_FREEZE=alert`, it logs `ALERTE GEL` once and leaves the target running; `RETABLI` is logged when the port answers again.
 
 ## `--diagnose` returns 0 but the target is unhealthy
 

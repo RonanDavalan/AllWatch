@@ -23,7 +23,7 @@ Das Paket legt den Systembenutzer und die Gruppe `allwatch` an (Home `/var/lib/a
 ## Installieren
 
 ```bash
-sudo apt install ./allwatch_0.1.0-3_all.deb
+sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
 Das Paket installiert das Programm und die Unit, aktiviert `allwatch.service`, startet ihn und liefert eine Konfiguration ohne aktives Ziel.
@@ -35,7 +35,7 @@ dpkg -s allwatch | grep -E '^(Status|Version):'
 allwatch --version
 ```
 
-`allwatch --version` gibt `allwatch 0.1.0` aus; die Paketversion ist `0.1.0-3`.
+`allwatch --version` gibt `allwatch 0.1.0` aus; die Paketversion ist `0.1.0-4`.
 
 ## Pfade und Dateien
 
@@ -74,6 +74,10 @@ bash -c ': > /dev/tcp/127.0.0.1/9001' && echo "Port 9001 antwortet"
 
 Der Dienstbenutzer muss den Befehl ausführen können. Verwenden Sie absolute Pfade: Der Befehl wird an Leerzeichen getrennt, ohne Anführungszeichen, und nicht über eine Shell gestartet. Für Argumente mit Leerzeichen oder Shell-Syntax schreiben Sie ein Wrapper-Skript und rufen es auf.
 
+## Hängendes Ziel: restart oder alert
+
+`ON_FREEZE` entscheidet, was mit einem Ziel geschieht, das noch lebt, dessen TCP-Port aber nach der Gnadenfrist nicht mehr antwortet. `ON_FREEZE=restart` (der ausgelieferte Standard) sendet `SIGTERM`, wartet etwa fünf Sekunden, sendet bei Bedarf `SIGKILL` und startet das Ziel gemäß seiner Richtlinie neu. `ON_FREEZE=alert` sendet kein Signal: Es schreibt einmal `ALERTE GEL`, lässt das Ziel laufen und schreibt `RETABLI`, wenn der Port wieder antwortet. Ein Absturz folgt in beiden Fällen der Richtlinie des Ziels. Jeder andere Wert wird beim Start mit Exit-Code 1 zurückgewiesen.
+
 ## Dienstbefehle
 
 ```bash
@@ -99,7 +103,7 @@ sudo -u allwatch env ALLWATCH_RUNTIME=/run/allwatch \
   allwatch --diagnose /etc/allwatch/allwatch.conf
 ```
 
-Es zeigt Version, Konfigurationspfad, Laufzeitpfad, Protokollpfad und für jedes Ziel Kennung, Port und Richtlinie. Es endet mit `0`, wenn die Konfiguration lesbar und die vorhandenen Laufzeit- und Protokollverzeichnisse nutzbar sind, sonst mit `1`. Es startet kein Ziel und sondiert keinen Port.
+Es zeigt Version, Konfigurationspfad, Laufzeitpfad, Protokollpfad, das Verhalten bei Hängern und für jedes Ziel Kennung, Port und Richtlinie. Es endet mit `0`, wenn die Konfiguration lesbar und die vorhandenen Laufzeit- und Protokollverzeichnisse nutzbar sind, sonst mit `1`. Es startet kein Ziel und sondiert keinen Port.
 
 ## Ein Ziel stoppen, ohne den Dienst zu stoppen
 
@@ -138,7 +142,7 @@ Die Zielbefehle erben diese Identität. Die Konfigurationsdatei bleibt Eigentum 
 ## Aktualisieren
 
 ```bash
-sudo apt install ./allwatch_0.1.0-3_all.deb
+sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
 `/etc/allwatch/allwatch.conf` bleibt erhalten; wenn die Paketversion sie ändert, fragt dpkg, welche Version behalten werden soll. Der Dienst wird nach der Aktualisierung neu gestartet, wenn er aktiv war. `/var/lib/allwatch` und sein Protokoll bleiben.

@@ -27,7 +27,7 @@ in four languages. Download the package and `SHA256SUMS` from the
 [download page](https://allwatch.davalan.fr/en/download/), then run:
 
 ```bash
-sudo apt install ./allwatch_0.1.0-3_all.deb
+sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
 Level announced: **installation and diagnosis validated in a container**, on
@@ -112,9 +112,12 @@ AllWatch is the parent, the target is the child. Every few seconds it looks at
 each target and puts it in one of four states:
 
 - **Up**: the process exists and its port accepts a connection.
-- **Hung**: the process exists but its port does not answer. AllWatch sends
-  `SIGTERM`, waits for the target to stop (5 seconds), sends `SIGKILL` if
-  needed, then treats the target as failed.
+- **Hung**: the process exists but its port does not answer. With
+  `ON_FREEZE=restart` (the default), AllWatch sends `SIGTERM`, waits for the
+  target to stop (5 seconds), sends `SIGKILL` if needed, then treats the
+  target as failed. With `ON_FREEZE=alert`, it sends no signal, logs
+  `ALERTE GEL` once, keeps the target under watch and logs `RETABLI` when the
+  port answers again.
 - **Crashed**: the process is gone without a deliberate stop. AllWatch reads
   the exit code and restarts the target if its policy says so.
 - **Quit**: the target ended and its policy says to leave it alone, or the
@@ -130,6 +133,9 @@ line:
 - `PROBE_TIMEOUT=3`: seconds a port has to answer the probe.
 - `MAX_RESTARTS=5`: restarts allowed inside the window below.
 - `RESTART_WINDOW=60`: length of that window, in seconds.
+- `ON_FREEZE=restart`: a hung target is neutralized and restarted; `alert`
+  leaves it untouched and logs `ALERTE GEL`. Any other value is refused at
+  startup with exit code 1.
 
 Targets, one per line:
 
@@ -191,9 +197,10 @@ in the health check.
   argument.
 - The command is not run through a shell: no quoting, pipes, redirections or
   variable expansion.
-- Configuration values and policy names are not validated. A non-numeric
-  `POLL_SECONDS` stops the supervisor with exit `1`; a mistyped policy acts as
-  `always`.
+- Numeric configuration values and policy names are not validated. A
+  non-numeric `POLL_SECONDS` stops the supervisor with exit `1`; a mistyped
+  policy acts as `always`. `ON_FREEZE` is validated: an unknown value stops
+  the supervisor with exit `1`.
 - The flat log is not rotated.
 
 ## License

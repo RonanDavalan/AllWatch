@@ -17,7 +17,7 @@ La cible est une boîte noire. Elle ne s'enregistre pas auprès d'AllWatch, ne l
 AllWatch est le parent, la cible est l'enfant. Toutes les quelques secondes, il examine chaque cible et la place dans l'un des quatre états suivants :
 
 - **En cours** : le processus existe et son port accepte une connexion.
-- **Bloqué** : le processus existe mais son port ne répond pas. AllWatch envoie `SIGTERM`, attend l’arrêt de la cible (5 secondes), envoie `SIGKILL` si nécessaire, puis considère la cible comme défaillante.
+- **Bloqué** : le processus existe mais son port ne répond pas. Avec `ON_FREEZE=restart` (le défaut), AllWatch envoie `SIGTERM`, attend l’arrêt de la cible (5 secondes), envoie `SIGKILL` si nécessaire, puis considère la cible comme défaillante. Avec `ON_FREEZE=alert`, il n’envoie aucun signal, journalise `ALERTE GEL` une fois, laisse la cible surveillée et journalise `RETABLI` quand le port répond de nouveau.
 - **Plantage** : le processus s'est arrêté brutalement. AllWatch analyse le code de sortie et redémarre la cible conformément à sa politique.
 - **Quitter** : la cible a atteint sa fin et sa politique indique de ne pas la modifier, ou la limite de redémarrage a été atteinte.
 
@@ -34,7 +34,7 @@ quatre langues. Téléchargez le paquet et `SHA256SUMS` depuis la [page de
 téléchargement](https://allwatch.davalan.fr/fr/telechargement/), puis lancez :
 
 ```bash
-sudo apt install ./allwatch_0.1.0-3_all.deb
+sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
 Niveau annoncé : **installation et diagnostic validés en conteneur**, sur
@@ -123,6 +123,7 @@ Paramètres du moteur, une `KEY=valeur` par ligne :
 - `PROBE_TIMEOUT=3`: secondes dont dispose un port pour répondre à la sonde.
 - `MAX_RESTARTS=5`: redémarrages autorisés dans la fenêtre ci-dessous.
 - `RESTART_WINDOW=60`: durée de cette fenêtre, en secondes.
+- `ON_FREEZE=restart`: une cible bloquée est neutralisée et relancée ; `alert` la laisse intacte et journalise `ALERTE GEL`. Toute autre valeur est refusée au démarrage avec le code 1.
 
 Cibles, une par ligne :
 

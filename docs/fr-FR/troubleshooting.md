@@ -10,7 +10,7 @@ sudo journalctl -u allwatch -n 50 --no-pager
 sudo tail -n 50 /var/lib/allwatch/allwatch/allwatch.log
 ```
 
-Les lignes du journal sont `date id événement`. Les événements sont `DEMARRAGE`, `DEMARRE`, `ADOPTE`, `PLANTE`, `NEUTRALISE SIGTERM`, `NEUTRALISE SIGKILL`, `CRASHE code=N`, `RELANCE`, `ALERTE VERROU_CRITIQUE`, `QUITTE` et `ARRET`.
+Les lignes du journal sont `date id événement`. Les événements sont `DEMARRAGE`, `DEMARRE`, `ADOPTE`, `PLANTE`, `ALERTE GEL`, `RETABLI`, `NEUTRALISE SIGTERM`, `NEUTRALISE SIGKILL`, `CRASHE code=N`, `RELANCE`, `ALERTE VERROU_CRITIQUE`, `QUITTE` et `ARRET`.
 
 ## Le service ne démarre pas
 
@@ -32,7 +32,7 @@ Les lignes du journal sont `date id événement`. Les événements sont `DEMARRA
 - La sonde est `timeout 3 bash -c ': > /dev/tcp/127.0.0.1/9001'`. La cible doit écouter sur `127.0.0.1` (ou `0.0.0.0`) sur le port déclaré. Une cible qui n'écoute que sur une autre adresse est considérée comme bloquée.
 - Mauvais port dans `/etc/allwatch/allwatch.conf` ; vérifiez avec `ss -ltnp | grep 9001`.
 - La cible est plus lente que `PROBE_TIMEOUT=3` ; augmentez-le dans la configuration, puis redémarrez le service.
-- La cible est vivante mais son écoute est fermée ; c'est exactement l'état bloqué. AllWatch envoie `SIGTERM`, attend 5 secondes, puis `SIGKILL`, et la relance.
+- La cible est vivante mais son écoute est fermée ; c'est exactement l'état bloqué. Avec `ON_FREEZE=restart` (le défaut), AllWatch envoie `SIGTERM`, attend 5 secondes, puis `SIGKILL`, et la relance. Avec `ON_FREEZE=alert`, il journalise `ALERTE GEL` une fois et laisse la cible vivante ; `RETABLI` est journalisé quand le port répond de nouveau.
 
 ## `--diagnose` rend 0 mais la cible est malsaine
 

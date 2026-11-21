@@ -23,7 +23,7 @@ El paquete crea el usuario y el grupo de sistema `allwatch` (directorio personal
 ## Instalar
 
 ```bash
-sudo apt install ./allwatch_0.1.0-3_all.deb
+sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
 El paquete instala el programa y la unidad, activa `allwatch.service`, lo inicia y entrega una configuración sin objetivo activo.
@@ -35,7 +35,7 @@ dpkg -s allwatch | grep -E '^(Status|Version):'
 allwatch --version
 ```
 
-`allwatch --version` muestra `allwatch 0.1.0`; la versión del paquete es `0.1.0-3`.
+`allwatch --version` muestra `allwatch 0.1.0`; la versión del paquete es `0.1.0-4`.
 
 ## Rutas y archivos
 
@@ -74,6 +74,10 @@ bash -c ': > /dev/tcp/127.0.0.1/9001' && echo "el puerto 9001 responde"
 
 El usuario del servicio debe poder ejecutar el comando. Use rutas absolutas: el comando se divide por espacios, sin comillas, y no se ejecuta por un shell. Para argumentos con espacios o sintaxis de shell, escriba un script envoltorio y llámelo.
 
+## Objetivo colgado: restart o alert
+
+`ON_FREEZE` decide qué ocurre con un objetivo que sigue vivo pero cuyo puerto TCP ya no responde tras el plazo de gracia. `ON_FREEZE=restart` (el valor por defecto del paquete) envía `SIGTERM`, espera unos cinco segundos, envía `SIGKILL` si hace falta y reinicia el objetivo según su política. `ON_FREEZE=alert` no envía ninguna señal: registra `ALERTE GEL` una vez, deja el objetivo en ejecución y registra `RETABLI` cuando el puerto vuelve a responder. Una caída sigue la política del objetivo en ambos casos. Cualquier otro valor se rechaza al arrancar con código 1.
+
 ## Comandos del servicio
 
 ```bash
@@ -99,7 +103,7 @@ sudo -u allwatch env ALLWATCH_RUNTIME=/run/allwatch \
   allwatch --diagnose /etc/allwatch/allwatch.conf
 ```
 
-Muestra la versión, la ruta de configuración, la ruta de ejecución, la ruta del diario y, para cada objetivo, su identificador, puerto y política. Devuelve `0` cuando la configuración es legible y los directorios de ejecución y diario existentes son utilizables, `1` en caso contrario. No inicia ningún objetivo ni sondea ningún puerto.
+Muestra la versión, la ruta de configuración, la ruta de ejecución, la ruta del diario, la conducta ante un bloqueo y, para cada objetivo, su identificador, puerto y política. Devuelve `0` cuando la configuración es legible y los directorios de ejecución y diario existentes son utilizables, `1` en caso contrario. No inicia ningún objetivo ni sondea ningún puerto.
 
 ## Detener un objetivo sin detener el servicio
 
@@ -138,7 +142,7 @@ Los comandos de los objetivos heredan esa identidad. El archivo de configuració
 ## Actualizar
 
 ```bash
-sudo apt install ./allwatch_0.1.0-3_all.deb
+sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
 `/etc/allwatch/allwatch.conf` se conserva; si la versión del paquete lo modifica, dpkg pregunta qué versión mantener. El servicio se reinicia tras la actualización si estaba activo. `/var/lib/allwatch` y su diario permanecen.

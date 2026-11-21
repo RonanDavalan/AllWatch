@@ -23,7 +23,7 @@ The package creates the system user and group `allwatch` (home `/var/lib/allwatc
 ## Install
 
 ```bash
-sudo apt install ./allwatch_0.1.0-3_all.deb
+sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
 The package installs the program and the unit, enables `allwatch.service`, starts it, and ships a configuration with no active target.
@@ -35,7 +35,7 @@ dpkg -s allwatch | grep -E '^(Status|Version):'
 allwatch --version
 ```
 
-`allwatch --version` prints `allwatch 0.1.0`; the package version is `0.1.0-3`.
+`allwatch --version` prints `allwatch 0.1.0`; the package version is `0.1.0-4`.
 
 ## Paths and files
 
@@ -74,6 +74,10 @@ bash -c ': > /dev/tcp/127.0.0.1/9001' && echo "port 9001 answers"
 
 The service user must be able to execute the command. Use absolute paths: the command is split on spaces without quoting and is not run through a shell. For arguments with spaces or shell syntax, write a wrapper script and call it.
 
+## Frozen target: restart or alert
+
+`ON_FREEZE` decides what happens when a target is still alive but its TCP port no longer answers after the grace period. `ON_FREEZE=restart` (the shipped default) sends `SIGTERM`, waits about five seconds, sends `SIGKILL` if needed, and restarts the target according to its policy. `ON_FREEZE=alert` sends no signal: it logs `ALERTE GEL` once, leaves the target running and logs `RETABLI` when the port answers again. A crash follows the target policy under both values. Any other value is refused at startup with exit code 1.
+
 ## Service commands
 
 ```bash
@@ -99,7 +103,7 @@ sudo -u allwatch env ALLWATCH_RUNTIME=/run/allwatch \
   allwatch --diagnose /etc/allwatch/allwatch.conf
 ```
 
-It prints the version, the configuration path, the runtime path, the log path and each target's id, port and policy. It exits `0` when the configuration is readable and the existing runtime and log directories are usable, `1` otherwise. It starts no target and probes no port.
+It prints the version, the configuration path, the runtime path, the log path, the freeze policy and each target's id, port and policy. It exits `0` when the configuration is readable and the existing runtime and log directories are usable, `1` otherwise. It starts no target and probes no port.
 
 ## Stop a target without stopping the service
 
@@ -138,7 +142,7 @@ The target commands inherit that identity. The configuration file remains root-o
 ## Upgrade
 
 ```bash
-sudo apt install ./allwatch_0.1.0-3_all.deb
+sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
 `/etc/allwatch/allwatch.conf` is preserved; if the packaged version changes, dpkg asks which version to keep. The service is restarted after the upgrade if it was active. `/var/lib/allwatch` and its log remain.
