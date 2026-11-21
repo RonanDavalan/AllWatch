@@ -1,6 +1,6 @@
 % ALLWATCH(1) allwatch | User Commands
 % Ronan Davalan
-% 2026-11-20
+% 2026-11-21
 
 # NAME
 
@@ -41,12 +41,12 @@ the current directory; the first argument replaces it.
 
 **--diagnose** [*CONFIGURATION*]
 :   Read the configuration, print the version, the configuration path, the
-    runtime directory, the log path and the identifier, port and policy of
-    each configured target, then exit. It also reports whether an existing
-    runtime directory and log directory are usable. It does not start or probe
-    a target and writes no state or log. It exits `0` when the configuration
-    is readable and the existing state and log directories are usable, `1`
-    otherwise.
+    runtime directory, the log path, the freeze policy and the identifier,
+    port and policy of each configured target, then exit. It also reports
+    whether an existing runtime directory and log directory are usable. It
+    does not start or probe a target and writes no state or log. It exits `0`
+    when the configuration is readable and the existing state and log
+    directories are usable, `1` otherwise.
 
 The options are recognized only as the first argument.
 
@@ -71,7 +71,17 @@ Engine parameters, one `KEY=value` per line:
 **RESTART_WINDOW**=*SECONDS*
 :   Length of the restart-counting window (default `60`).
 
-Values are used as written and are not validated.
+**ON_FREEZE**=*restart*|*alert*
+:   What to do with a target that is still alive but whose port no longer
+    answers after the grace period. `restart` (default) sends `SIGTERM`, waits
+    about 5 seconds, sends `SIGKILL` if needed, and treats the target as
+    failed; `alert` sends no signal, logs `ALERTE GEL` once and leaves the
+    target under watch, then logs `RETABLI` when the port answers again. A
+    crash follows the target policy under both values. Any other value is
+    refused at startup with exit code `1`.
+
+The numeric values and policy names are used as written and are not
+validated; `ON_FREEZE` is the exception and only accepts `restart` or `alert`.
 
 Targets, one per line:
 
@@ -128,9 +138,12 @@ process, the port and the flat log.
 **Hung**
 :   The process exists but its port does not answer. AllWatch marks the
     target suspect at the first failed probe and waits `2 * POLL_SECONDS`
-    seconds. If the port is still closed, it sends `SIGTERM`, waits about 5
-    seconds for the target to stop, sends `SIGKILL` if needed, and treats the
-    target as failed.
+    seconds. If the port is still closed, the behaviour depends on
+    `ON_FREEZE`: `restart` sends `SIGTERM`, waits about 5 seconds for the
+    target to stop, sends `SIGKILL` if needed, and treats the target as
+    failed; `alert` sends no signal, logs `ALERTE GEL` once, keeps the target
+    under watch and logs `RETABLI` when the port answers again. If the process
+    dies while hung, the target is treated as crashed.
 
 **Crashed**
 :   The process is gone without a deliberate stop. AllWatch reads the exit
@@ -284,6 +297,7 @@ Configuration with one target:
     PROBE_TIMEOUT=3
     MAX_RESTARTS=5
     RESTART_WINDOW=60
+    ON_FREEZE=restart
     demo 9001 on-failure ./dummy-target.sh 9001
 
 With the Debian package, use absolute paths for the command, because the
@@ -314,12 +328,16 @@ deliberate stop of a target, create its stop file as the service user:
 - No supervision of a target that daemonizes or double-forks.
 - The command is not run through a shell: no quoting, pipes, redirections or
   variable expansion.
-- Configuration values and policy names are not validated. A zero
+- Numeric configuration values and policy names are not validated. A zero
   `POLL_SECONDS` makes the loop spin without resting; a non-numeric
   `POLL_SECONDS` stops the supervisor with exit `1`; a non-numeric
   `PROBE_TIMEOUT` makes every probe fail; a mistyped policy acts as `always`;
   a non-numeric `MAX_RESTARTS` or `RESTART_WINDOW` can prevent the restart
-  limit from being reached.
+  limit from being reached. `ON_FREEZE` is validated: an unknown value stops
+  the supervisor with exit `1`.
+- With `ON_FREEZE=alert`, a target whose port stays closed is left alive and
+  hung; AllWatch logs `ALERTE GEL` once and recovers it only if the port
+  answers again or the process dies.
 - An `id` containing `/` or `..` can escape the runtime directory; AllWatch
   does not validate it.
 - After a supervisor restart, an adopted target's exit code is unavailable;

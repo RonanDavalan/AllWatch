@@ -1,6 +1,6 @@
 % ALLWATCH(1) allwatch | Commandes utilisateur
 % Ronan Davalan
-% 2026-11-20
+% 2026-11-21
 
 # NOM
 
@@ -41,12 +41,13 @@ La configuration est lue une fois au démarrage. Le fichier par défaut est
 
 **--diagnose** [*CONFIGURATION*]
 :   Lire la configuration, afficher la version, le chemin de la configuration,
-    le répertoire d'état, le chemin du journal et l'identifiant, le port et la
-    politique de chaque cible configurée, puis sortir. Il indique aussi si un
-    répertoire d'état et un répertoire de journal existants sont utilisables.
-    Ne lance ni ne sonde aucune cible et n'écrit ni état ni journal. Sort avec
-    `0` si la configuration est lisible et si les répertoires d'état et de
-    journal existants sont utilisables, `1` sinon.
+    le répertoire d'état, le chemin du journal, la conduite sur gel et
+    l'identifiant, le port et la politique de chaque cible configurée, puis
+    sortir. Il indique aussi si un répertoire d'état et un répertoire de
+    journal existants sont utilisables. Ne lance ni ne sonde aucune cible et
+    n'écrit ni état ni journal. Sort avec `0` si la configuration est lisible
+    et si les répertoires d'état et de journal existants sont utilisables, `1`
+    sinon.
 
 Les options ne sont reconnues qu'en première position.
 
@@ -71,7 +72,18 @@ Paramètres du moteur, une ligne `CLE=valeur` chacun :
 **RESTART_WINDOW**=*SECONDES*
 :   Durée de la fenêtre de comptage des relances (défaut `60`).
 
-Les valeurs sont utilisées telles quelles et ne sont pas validées.
+**ON_FREEZE**=*restart*|*alert*
+:   Conduite à tenir devant une cible encore vivante dont le port ne répond
+    plus après le délai de grâce. `restart` (défaut) envoie `SIGTERM`, attend
+    environ 5 secondes, envoie `SIGKILL` si nécessaire et considère la cible
+    comme défaillante ; `alert` n'envoie aucun signal, journalise `ALERTE GEL`
+    une fois, laisse la cible surveillée et journalise `RETABLI` quand le port
+    répond de nouveau. Un plantage suit la politique de la cible dans les deux
+    cas. Toute autre valeur est refusée au démarrage avec le code `1`.
+
+Les valeurs numériques et les noms de politique sont utilisés tels quels et ne
+sont pas validés ; `ON_FREEZE` fait exception et n'accepte que `restart` ou
+`alert`.
 
 Cibles, une par ligne :
 
@@ -129,9 +141,12 @@ processus, le port et le journal plat.
 **Planté**
 :   Le processus existe mais son port ne répond pas. AllWatch marque la cible
     suspecte au premier échec de sonde et attend `2 * POLL_SECONDS` secondes.
-    Si le port est toujours fermé, il envoie `SIGTERM`, attend environ 5
-    secondes l'arrêt de la cible, envoie `SIGKILL` si nécessaire, puis
-    considère la cible comme défaillante.
+    Si le port est toujours fermé, la conduite dépend d'`ON_FREEZE` :
+    `restart` envoie `SIGTERM`, attend environ 5 secondes l'arrêt de la cible,
+    envoie `SIGKILL` si nécessaire, puis considère la cible comme défaillante ;
+    `alert` n'envoie aucun signal, journalise `ALERTE GEL` une fois, laisse la
+    cible surveillée et journalise `RETABLI` quand le port répond de nouveau.
+    Si le processus meurt pendant le gel, la cible est traitée comme crashée.
 
 **Crashé**
 :   Le processus a disparu sans arrêt volontaire. AllWatch lit le code de
@@ -287,6 +302,7 @@ Configuration avec une cible :
     PROBE_TIMEOUT=3
     MAX_RESTARTS=5
     RESTART_WINDOW=60
+    ON_FREEZE=restart
     demo 9001 on-failure ./dummy-target.sh 9001
 
 Avec le paquet Debian, utiliser un chemin absolu pour la commande, car le
@@ -318,13 +334,17 @@ l'utilisateur du service :
 - Pas de supervision d'une cible qui se détache en arrière-plan.
 - La commande n'est pas exécutée par un shell : ni guillemets, ni tubes, ni
   redirections, ni expansion des variables.
-- Les valeurs de configuration et les noms de politique ne sont pas validés.
-  Un `POLL_SECONDS` nul fait tourner la boucle sans repos ; un `POLL_SECONDS`
-  non numérique arrête le superviseur avec le code `1` ; un `PROBE_TIMEOUT`
-  non numérique fait échouer toutes les sondes ; une politique mal
-  orthographiée agit comme `always` ; un `MAX_RESTARTS` ou un
+- Les valeurs numériques de configuration et les noms de politique ne sont pas
+  validés. Un `POLL_SECONDS` nul fait tourner la boucle sans repos ; un
+  `POLL_SECONDS` non numérique arrête le superviseur avec le code `1` ; un
+  `PROBE_TIMEOUT` non numérique fait échouer toutes les sondes ; une politique
+  mal orthographiée agit comme `always` ; un `MAX_RESTARTS` ou un
   `RESTART_WINDOW` non numérique peut empêcher d'atteindre la limite de
-  relances.
+  relances. `ON_FREEZE` est validé : une valeur inconnue arrête le superviseur
+  avec le code `1`.
+- Avec `ON_FREEZE=alert`, une cible dont le port reste fermé est laissée
+  vivante et gelée ; AllWatch journalise `ALERTE GEL` une fois et ne la
+  rétablit que si le port répond de nouveau ou si le processus meurt.
 - Un `id` contenant `/` ou `..` peut sortir du répertoire d'état ; AllWatch ne
   le valide pas.
 - Après un redémarrage du superviseur, le code de sortie d'une cible adoptée

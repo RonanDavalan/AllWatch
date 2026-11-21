@@ -1,6 +1,6 @@
 % ALLWATCH(1) allwatch | Benutzerbefehle
 % Ronan Davalan
-% 2026-11-20
+% 2026-11-21
 
 # NAME
 
@@ -42,12 +42,12 @@ Die Konfiguration wird beim Start einmal gelesen. Standard ist
 
 **--diagnose** [*KONFIGURATION*]
 :   Die Konfiguration lesen, Version, Konfigurationspfad, Zustandsverzeichnis,
-    Journalpfad sowie Kennung, Port und Richtlinie jedes konfigurierten Ziels
-    ausgeben und beenden. Es meldet außerdem, ob ein vorhandenes Zustands- und
-    Journalverzeichnis nutzbar ist. Startet und prüft kein Ziel und schreibt
-    weder Zustand noch Journal. Exit-Code `0`, wenn die Konfiguration lesbar
-    und die vorhandenen Zustands- und Journalverzeichnisse nutzbar sind, sonst
-    `1`.
+    Journalpfad, das Verhalten bei Hängern sowie Kennung, Port und Richtlinie
+    jedes konfigurierten Ziels ausgeben und beenden. Es meldet außerdem, ob ein
+    vorhandenes Zustands- und Journalverzeichnis nutzbar ist. Startet und
+    prüft kein Ziel und schreibt weder Zustand noch Journal. Exit-Code `0`,
+    wenn die Konfiguration lesbar und die vorhandenen Zustands- und
+    Journalverzeichnisse nutzbar sind, sonst `1`.
 
 Die Optionen werden nur als erstes Argument erkannt.
 
@@ -72,7 +72,18 @@ Engine-Parameter, je eine Zeile `SCHLÜSSEL=Wert`:
 **RESTART_WINDOW**=*SEKUNDEN*
 :   Länge des Zeitfensters für die Neustartzählung (Standard `60`).
 
-Die Werte werden unverändert verwendet und nicht geprüft.
+**ON_FREEZE**=*restart*|*alert*
+:   Verhalten für ein Ziel, das noch lebt, dessen Port aber nach der
+    Gnadenfrist nicht mehr antwortet. `restart` (Standard) sendet `SIGTERM`,
+    wartet etwa 5 Sekunden, sendet bei Bedarf `SIGKILL` und behandelt das Ziel
+    als fehlerhaft; `alert` sendet kein Signal, schreibt einmal `ALERTE GEL`,
+    lässt das Ziel überwacht und schreibt `RETABLI`, wenn der Port wieder
+    antwortet. Ein Absturz folgt in beiden Fällen der Richtlinie des Ziels.
+    Jeder andere Wert wird beim Start mit Exit-Code `1` zurückgewiesen.
+
+Die numerischen Werte und Richtliniennamen werden unverändert verwendet und
+nicht geprüft; `ON_FREEZE` ist die Ausnahme und akzeptiert nur `restart` oder
+`alert`.
 
 Ziele, eines pro Zeile:
 
@@ -130,9 +141,13 @@ den Prozess, den Port und das flache Journal sichtbar.
 **Hängt**
 :   Der Prozess existiert, aber sein Port antwortet nicht. AllWatch markiert
     das Ziel bei der ersten fehlgeschlagenen Sonde als verdächtig und wartet
-    `2 * POLL_SECONDS` Sekunden. Ist der Port weiterhin geschlossen, sendet es
-    `SIGTERM`, wartet etwa 5 Sekunden auf das Ende, sendet bei Bedarf `SIGKILL`
-    und behandelt das Ziel als fehlerhaft.
+    `2 * POLL_SECONDS` Sekunden. Ist der Port weiterhin geschlossen, hängt das
+    Verhalten von `ON_FREEZE` ab: `restart` sendet `SIGTERM`, wartet etwa 5
+    Sekunden auf das Ende, sendet bei Bedarf `SIGKILL` und behandelt das Ziel
+    als fehlerhaft; `alert` sendet kein Signal, schreibt einmal `ALERTE GEL`,
+    lässt das Ziel überwacht und schreibt `RETABLI`, wenn der Port wieder
+    antwortet. Stirbt der Prozess während des Hängens, gilt das Ziel als
+    abgestürzt.
 
 **Abgestürzt**
 :   Der Prozess ist ohne bewusstes Ende verschwunden. AllWatch liest den
@@ -294,6 +309,7 @@ Konfiguration mit einem Ziel:
     PROBE_TIMEOUT=3
     MAX_RESTARTS=5
     RESTART_WINDOW=60
+    ON_FREEZE=restart
     demo 9001 on-failure ./dummy-target.sh 9001
 
 Mit dem Debian-Paket absolute Pfade verwenden, weil der Dienst aus
@@ -325,13 +341,17 @@ Dienstbenutzer anlegen:
 - Keine Überwachung eines Ziels, das sich im Hintergrund ablöst.
 - Der Befehl wird nicht über eine Shell ausgeführt: keine Anführungszeichen,
   Pipes, Umleitungen oder Variablenexpansion.
-- Konfigurationswerte und Richtliniennamen werden nicht geprüft. Ein
-  `POLL_SECONDS` von null lässt die Schleife ohne Ruhepause drehen; ein nicht
-  numerischer `POLL_SECONDS` beendet den Supervisor mit Exit-Code `1`; ein
-  nicht numerischer `PROBE_TIMEOUT` lässt jede Sonde fehlschlagen; eine falsch
-  geschriebene Richtlinie wirkt wie `always`; ein nicht numerischer
+- Numerische Konfigurationswerte und Richtliniennamen werden nicht geprüft.
+  Ein `POLL_SECONDS` von null lässt die Schleife ohne Ruhepause drehen; ein
+  nicht numerischer `POLL_SECONDS` beendet den Supervisor mit Exit-Code `1`;
+  ein nicht numerischer `PROBE_TIMEOUT` lässt jede Sonde fehlschlagen; eine
+  falsch geschriebene Richtlinie wirkt wie `always`; ein nicht numerischer
   `MAX_RESTARTS` oder `RESTART_WINDOW` kann verhindern, dass die
-  Neustartgrenze erreicht wird.
+  Neustartgrenze erreicht wird. `ON_FREEZE` wird geprüft: Ein unbekannter Wert
+  beendet den Supervisor mit Exit-Code `1`.
+- Mit `ON_FREEZE=alert` bleibt ein Ziel, dessen Port geschlossen bleibt, am
+  Leben und hängt; AllWatch schreibt `ALERTE GEL` einmal und erholt es nur,
+  wenn der Port wieder antwortet oder der Prozess stirbt.
 - Eine `id` mit `/` oder `..` kann aus dem Zustandsverzeichnis ausbrechen;
   AllWatch prüft sie nicht.
 - Nach einem Neustart des Supervisors ist der Exit-Code eines übernommenen
