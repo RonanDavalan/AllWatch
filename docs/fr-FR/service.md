@@ -26,7 +26,7 @@ Le paquet crée l'utilisateur et le groupe système `allwatch` (domicile `/var/l
 sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
-Le paquet installe le programme et l'unité, active `allwatch.service`, le démarre et livre une configuration sans cible active.
+Le paquet installe le programme et l'unité. Quand systemd tourne, il active et démarre `allwatch.service`. La configuration livrée ne contient aucune cible active : le service démarre et attend.
 
 Vérifiez l'état du paquet et la version du programme :
 
@@ -103,7 +103,7 @@ sudo -u allwatch env ALLWATCH_RUNTIME=/run/allwatch \
   allwatch --diagnose /etc/allwatch/allwatch.conf
 ```
 
-Il affiche la version, le chemin de la configuration, le chemin d'exécution, le chemin du journal, la conduite sur gel et, pour chaque cible, son identifiant, son port et sa politique. Il rend `0` quand la configuration est lisible et que les répertoires d'exécution et de journal existants sont utilisables, `1` sinon. Il ne lance aucune cible et ne sonde aucun port.
+Il affiche la version, le chemin de la configuration, le chemin d'exécution, le chemin du journal, la conduite sur gel et, pour chaque cible, son identifiant, son port et sa politique. Il rend `0` quand la configuration est lisible, qu'un répertoire d'exécution existant appartient à l'utilisateur courant et qu'un répertoire de journal existant est inscriptible. Il rend `1` pour une configuration illisible, un `ON_FREEZE` invalide, un `POLL_SECONDS` non numérique, un répertoire d'exécution existant qui n'appartient pas à l'utilisateur courant, ou un répertoire de journal existant qui n'est pas inscriptible. Il ne lance aucune cible et ne sonde aucun port.
 
 ## Arrêter une cible sans arrêter le service
 
@@ -117,7 +117,7 @@ AllWatch retire le fichier quand la cible se termine et ne la relance pas. Le fi
 
 ## Faire tourner le service sous un autre utilisateur
 
-Le service tourne sous `allwatch`. Si une cible a besoin de root ou d'un autre compte, créez un fichier de dépassement (drop-in) :
+Le service tourne sous `allwatch`. Si les cibles ont besoin de root ou d'un autre compte, créez un fichier de dépassement (drop-in) :
 
 ```bash
 sudo systemctl edit allwatch

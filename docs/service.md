@@ -26,7 +26,9 @@ The package creates the system user and group `allwatch` (home `/var/lib/allwatc
 sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
-The package installs the program and the unit, enables `allwatch.service`, starts it, and ships a configuration with no active target.
+The package installs the program and the unit. When systemd is running, it
+enables and starts `allwatch.service`. The shipped configuration has no active
+target, so the service starts and waits.
 
 Check the package state and the program version:
 
@@ -103,7 +105,7 @@ sudo -u allwatch env ALLWATCH_RUNTIME=/run/allwatch \
   allwatch --diagnose /etc/allwatch/allwatch.conf
 ```
 
-It prints the version, the configuration path, the runtime path, the log path, the freeze policy and each target's id, port and policy. It exits `0` when the configuration is readable and the existing runtime and log directories are usable, `1` otherwise. It starts no target and probes no port.
+It prints the version, the configuration path, the runtime path, the log path, the freeze policy and each target's id, port and policy. It exits `0` when the configuration is readable, an existing runtime directory is owned by the current user and an existing log directory is writable. It exits `1` for an unreadable configuration, an invalid `ON_FREEZE`, a non-numeric `POLL_SECONDS`, an existing runtime directory not owned by the current user, or an existing log directory that is not writable. It starts no target and probes no port.
 
 ## Stop a target without stopping the service
 
@@ -117,7 +119,8 @@ AllWatch removes the file when the target ends and does not restart it. The file
 
 ## Run as another user
 
-The service runs as `allwatch`. If a target needs root or another account, create a drop-in:
+The service runs as `allwatch`. If the targets need root or another account,
+create a drop-in:
 
 ```bash
 sudo systemctl edit allwatch

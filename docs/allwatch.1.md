@@ -1,6 +1,6 @@
 % ALLWATCH(1) allwatch | User Commands
 % Ronan Davalan
-% 2026-11-21
+% 2026-11-22
 
 # NAME
 
@@ -41,12 +41,18 @@ the current directory; the first argument replaces it.
 
 **--diagnose** [*CONFIGURATION*]
 :   Read the configuration, print the version, the configuration path, the
-    runtime directory, the log path, the freeze policy and the identifier,
-    port and policy of each configured target, then exit. It also reports
-    whether an existing runtime directory and log directory are usable. It
-    does not start or probe a target and writes no state or log. It exits `0`
-    when the configuration is readable and the existing state and log
-    directories are usable, `1` otherwise.
+    runtime directory, the log path, the freeze policy, the number of targets
+    and the identifier, port and policy of each configured target, then exit.
+    It also reports whether an existing runtime directory is a directory owned
+    by the current user and whether an existing log directory is writable. It
+    does not start or probe a target and writes no state or log.
+    A configuration error is reported on standard error before any listing. It
+    exits `0` when the configuration is readable, an existing state directory
+    is owned by the current user and an existing log directory is writable. It
+    exits `1` for an unreadable configuration, an invalid `ON_FREEZE`, a
+    non-numeric `POLL_SECONDS`, an existing state directory that is not a
+    directory owned by the current user, or an existing log directory that is
+    not writable.
 
 The options are recognized only as the first argument.
 
@@ -112,8 +118,9 @@ Policies:
     file `id.stop` exists in the state directory.
 
 **on-failure**
-:   Restart after a crash or a hang; leave the target stopped after a clean
-    exit code 0.
+:   Restart after a crash, or after a hang that AllWatch has neutralized
+    (`ON_FREEZE=restart`); leave the target stopped after a clean exit code 0.
+    With `ON_FREEZE=alert`, a hung target is left running and is not restarted.
 
 **transient**
 :   Never restart the target.
@@ -153,8 +160,8 @@ process, the port and the flat log.
 
 **Quit**
 :   The target ended and its policy says to leave it alone, or an operator
-    stop flag was honored. The PID file and the stop file are removed, and the
-    target is no longer monitored until the supervisor restarts.
+    stop flag was honored. The PID file is removed, and the stop file if one
+    was used; the target is no longer monitored until the supervisor restarts.
 
 **Locked (VERROU_CRITIQUE)**
 :   The target reached `MAX_RESTARTS` restarts inside `RESTART_WINDOW`.
@@ -169,9 +176,9 @@ process, the port and the flat log.
     `id.fails` file per target; an `id.stop` file is created by the operator
     to request a deliberate stop. The directory is created with mode `0700`
     if absent; an existing directory must be owned by the current user.
-    AllWatch removes its own `.pid`, `.stop` and `.fails` files when it stops;
-    other files are left. Override the directory with the `ALLWATCH_RUNTIME`
-    environment variable.
+    AllWatch removes the `.pid`, `.stop` and `.fails` files from the directory
+    when it stops; other files are left. Override the directory with the
+    `ALLWATCH_RUNTIME` environment variable.
 
 `$XDG_STATE_HOME/allwatch/allwatch.log`, `$HOME/.local/state/allwatch/allwatch.log`
 :   Flat event log, one line per event (`date id event`). The directory is
@@ -213,8 +220,8 @@ reloaded at runtime: after editing it, run:
     systemctl restart allwatch
 
 The target commands inherit the service user, group and working directory
-(`/var/lib/allwatch`). To run a target as another user, create a drop-in with
-`systemctl edit allwatch` and set `User=` and `Group=`.
+(`/var/lib/allwatch`). To run the service and all its targets as another user,
+create a drop-in with `systemctl edit allwatch` and set `User=` and `Group=`.
 
 Useful commands:
 
@@ -231,7 +238,7 @@ Useful commands:
 **SIGTERM**, **SIGINT**
 :   The supervisor stops each target that is still present with `SIGTERM`,
     waits about 5 seconds for it to exit, sends `SIGKILL` if needed, removes
-    its `.pid`, `.stop` and `.fails` files, writes `allwatch ARRET` to the log
+    the `.pid`, `.stop` and `.fails` files, writes `allwatch ARRET` to the log
     and exits (`130` for `SIGINT`, `143` for `SIGTERM`).
 
 **SIGTERM to a target**
@@ -263,10 +270,10 @@ Useful commands:
     `SIGTERM` and therefore does not return `0` in normal operation.
 
 **1**
-:   The configuration file is unreadable, the runtime directory is not owned
-    by the current user, a `--diagnose` path check failed, or a fatal runtime
-    error occurred (for example a non-numeric `POLL_SECONDS`, or an unwritable
-    state or log directory).
+:   The configuration file is unreadable, `ON_FREEZE` is invalid, the runtime
+    directory is not owned by the current user, a `--diagnose` path check
+    failed, or a fatal runtime error occurred (for example a non-numeric
+    `POLL_SECONDS`, or an unwritable state or log directory).
 
 **130**
 :   Interrupted by `SIGINT`.
@@ -275,7 +282,9 @@ Useful commands:
 :   Terminated by `SIGTERM`.
 
 The target's exit code is used by the supervisor to apply the policy, but it
-is not returned as the supervisor's exit status.
+is not returned as the supervisor's exit status. Other fatal failures of the
+shell or of a system utility return that command's non-zero status, usually
+`1`.
 
 # EXAMPLES
 
@@ -314,7 +323,8 @@ service:
     systemctl status allwatch
     journalctl -u allwatch -f
 
-The test double accepts `SIGUSR1` (stop listening, stay alive), `SIGUSR2`
+The test double needs `nc` (the `netcat-openbsd` package) and `setpriv`
+(`util-linux`). It accepts `SIGUSR1` (stop listening, stay alive), `SIGUSR2`
 (crash with exit code 1) and `SIGTERM` (clean exit 0). To request a
 deliberate stop of a target, create its stop file as the service user:
 
@@ -332,9 +342,10 @@ deliberate stop of a target, create its stop file as the service user:
   `POLL_SECONDS` makes the loop spin without resting; a non-numeric
   `POLL_SECONDS` stops the supervisor with exit `1`; a non-numeric
   `PROBE_TIMEOUT` makes every probe fail; a mistyped policy acts as `always`;
-  a non-numeric `MAX_RESTARTS` or `RESTART_WINDOW` can prevent the restart
-  limit from being reached. `ON_FREEZE` is validated: an unknown value stops
-  the supervisor with exit `1`.
+  a non-numeric `MAX_RESTARTS` makes every limit check fail, so an `always` or
+  `on-failure` target keeps restarting; a non-numeric `RESTART_WINDOW` stops
+  the supervisor with exit `1` when it next has to compute the window. `ON_FREEZE` is validated:
+  an unknown value stops the supervisor with exit `1`.
 - With `ON_FREEZE=alert`, a target whose port stays closed is left alive and
   hung; AllWatch logs `ALERTE GEL` once and recovers it only if the port
   answers again or the process dies.

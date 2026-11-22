@@ -1,6 +1,6 @@
 % ALLWATCH(1) allwatch | Comandos de usuario
 % Ronan Davalan
-% 2026-11-21
+% 2026-11-22
 
 # NOMBRE
 
@@ -41,13 +41,19 @@ La configuración se lee una vez, al arrancar. El archivo por defecto es
 
 **--diagnose** [*CONFIGURACIÓN*]
 :   Leer la configuración, mostrar la versión, la ruta de la configuración, el
-    directorio de estado, la ruta del diario, la conducta ante un bloqueo y
-    el identificador, puerto y política de cada objetivo configurado, y salir.
-    También indica si un directorio de estado y un directorio de diario
-    existentes son utilizables. No inicia ni sondea ningún objetivo y no
-    escribe estado ni diario. Sale con `0` si la configuración es legible y los
-    directorios de estado y diario existentes son utilizables, `1` en caso
-    contrario.
+    directorio de estado, la ruta del diario, la conducta ante un bloqueo, el
+    número de objetivos y el identificador, puerto y política de cada objetivo
+    configurado, y salir. También indica si un directorio de estado existente
+    es un directorio propiedad del usuario actual y si un directorio de diario
+    existente es escribible. No inicia ni sondea ningún objetivo y no escribe
+    estado ni diario. Un error de configuración se informa por la salida de
+    error antes de cualquier listado. Sale con `0` si la configuración es
+    legible, un directorio de estado existente pertenece al usuario actual y un
+    directorio de diario existente es escribible. Sale con `1` por una
+    configuración ilegible, un `ON_FREEZE` inválido, un `POLL_SECONDS` no
+    numérico, un directorio de estado existente que no es un directorio
+    propiedad del usuario actual, o un directorio de diario existente que no es
+    escribible.
 
 Las opciones solo se reconocen como primer argumento.
 
@@ -114,8 +120,10 @@ Políticas:
     que exista un archivo `id.stop` en el directorio de estado.
 
 **on-failure**
-:   Reiniciar tras un fallo o un bloqueo; dejar el objetivo detenido tras un
-    final limpio con código 0.
+:   Reiniciar tras un fallo, o tras un bloqueo que AllWatch haya neutralizado
+    (`ON_FREEZE=restart`); dejar el objetivo detenido tras un final limpio con
+    código 0. Con `ON_FREEZE=alert`, un objetivo colgado se deja vivo y no se
+    reinicia.
 
 **transient**
 :   No reiniciar nunca el objetivo.
@@ -155,8 +163,8 @@ el puerto y el diario plano.
 
 **Terminado**
 :   El objetivo terminó y su política indica dejarlo detenido, o se atendió
-    una marca de parada del operador. El archivo PID y el archivo de parada se
-    eliminan, y el objetivo deja de vigilarse hasta el reinicio del
+    una marca de parada del operador. Se elimina el archivo PID y, si se usó,
+    el archivo de parada; el objetivo deja de vigilarse hasta el reinicio del
     supervisor.
 
 **Bloqueado (VERROU_CRITIQUE)**
@@ -172,9 +180,9 @@ el puerto y el diario plano.
     archivo `id.pid` y un archivo `id.fails` por objetivo; el operador crea un
     archivo `id.stop` para pedir una parada deliberada. El directorio se crea
     con modo `0700` si no existe; un directorio existente debe pertenecer al
-    usuario actual. AllWatch elimina sus propios archivos `.pid`, `.stop` y
-    `.fails` al detenerse; los demás archivos permanecen. El directorio se
-    cambia con la variable de entorno `ALLWATCH_RUNTIME`.
+    usuario actual. AllWatch elimina los archivos `.pid`, `.stop` y `.fails`
+    del directorio al detenerse; los demás archivos permanecen. El directorio
+    se cambia con la variable de entorno `ALLWATCH_RUNTIME`.
 
 `$XDG_STATE_HOME/allwatch/allwatch.log`, `$HOME/.local/state/allwatch/allwatch.log`
 :   Diario plano, una línea por evento (`fecha id evento`). El directorio se
@@ -215,9 +223,9 @@ configuración no se recarga en caliente: tras modificarla, ejecutar:
     systemctl restart allwatch
 
 Los comandos de los objetivos heredan el usuario, el grupo y el directorio de
-trabajo (`/var/lib/allwatch`) del servicio. Para ejecutar un objetivo con otro
-usuario, crear un drop-in con `systemctl edit allwatch` y definir `User=` y
-`Group=`.
+trabajo (`/var/lib/allwatch`) del servicio. Para ejecutar el servicio y todos
+sus objetivos con otro usuario, crear un drop-in con `systemctl edit allwatch`
+y definir `User=` y `Group=`.
 
 Comandos útiles:
 
@@ -234,7 +242,7 @@ Comandos útiles:
 **SIGTERM**, **SIGINT**
 :   El supervisor detiene cada objetivo que siga presente con `SIGTERM`,
     espera unos 5 segundos su final, envía `SIGKILL` si hace falta, elimina
-    sus archivos `.pid`, `.stop` y `.fails`, escribe `allwatch ARRET` en el
+    los archivos `.pid`, `.stop` y `.fails`, escribe `allwatch ARRET` en el
     diario y termina (`130` para `SIGINT`, `143` para `SIGTERM`).
 
 **SIGTERM** a un objetivo
@@ -268,10 +276,10 @@ Comandos útiles:
     y, por tanto, no devuelve `0` en funcionamiento normal.
 
 **1**
-:   Archivo de configuración ilegible, directorio de estado que no pertenece
-    al usuario actual, una comprobación de ruta de `--diagnose` fallida, o
-    error fatal (por ejemplo un `POLL_SECONDS` no numérico, o un directorio de
-    estado o de diario no escribible).
+:   Archivo de configuración ilegible, `ON_FREEZE` inválido, directorio de
+    estado que no pertenece al usuario actual, una comprobación de ruta de
+    `--diagnose` fallida, o error fatal (por ejemplo un `POLL_SECONDS` no
+    numérico, o un directorio de estado o de diario no escribible).
 
 **130**
 :   Interrumpido por `SIGINT`.
@@ -280,7 +288,9 @@ Comandos útiles:
 :   Terminado por `SIGTERM`.
 
 El código de salida de un objetivo lo usa el supervisor para aplicar la
-política, pero no se devuelve como código de salida del supervisor.
+política, pero no se devuelve como código de salida del supervisor. Otros
+fallos fatales del shell o de una utilidad del sistema devuelven el código
+distinto de cero de ese comando, normalmente `1`.
 
 # EJEMPLOS
 
@@ -318,9 +328,10 @@ servicio:
     systemctl status allwatch
     journalctl -u allwatch -f
 
-La maqueta acepta `SIGUSR1` (dejar de escuchar, seguir vivo), `SIGUSR2` (caer
-con código 1) y `SIGTERM` (final limpio con código 0). Para pedir la parada
-deliberada de un objetivo, crear su archivo de parada como usuario del
+La maqueta necesita `nc` (paquete `netcat-openbsd`) y `setpriv`
+(`util-linux`). Acepta `SIGUSR1` (dejar de escuchar, seguir vivo), `SIGUSR2`
+(caer con código 1) y `SIGTERM` (final limpio con código 0). Para pedir la
+parada deliberada de un objetivo, crear su archivo de parada como usuario del
 servicio:
 
     sudo -u allwatch touch /run/allwatch/demo.stop
@@ -337,8 +348,10 @@ servicio:
   validan. Un `POLL_SECONDS` cero hace girar el bucle sin descanso; un
   `POLL_SECONDS` no numérico detiene el supervisor con código `1`; un
   `PROBE_TIMEOUT` no numérico hace fallar todas las sondas; una política mal
-  escrita actúa como `always`; un `MAX_RESTARTS` o `RESTART_WINDOW` no
-  numérico puede impedir alcanzar el límite de reinicios. `ON_FREEZE` se
+  escrita actúa como `always`; un `MAX_RESTARTS` no numérico hace fallar cada
+  comprobación del límite, así que un objetivo `always` o `on-failure` sigue
+  reiniciándose; un `RESTART_WINDOW` no numérico detiene el supervisor con
+  código `1` la próxima vez que tenga que calcular la ventana. `ON_FREEZE` se
   valida: un valor desconocido detiene el supervisor con código `1`.
 - Con `ON_FREEZE=alert`, un objetivo cuyo puerto sigue cerrado queda vivo y
   colgado; AllWatch registra `ALERTE GEL` una vez y solo lo recupera si el

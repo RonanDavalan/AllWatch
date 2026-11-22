@@ -26,7 +26,7 @@ Das Paket legt den Systembenutzer und die Gruppe `allwatch` an (Home `/var/lib/a
 sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
-Das Paket installiert das Programm und die Unit, aktiviert `allwatch.service`, startet ihn und liefert eine Konfiguration ohne aktives Ziel.
+Das Paket installiert das Programm und die Unit. Wenn systemd läuft, aktiviert es `allwatch.service` und startet den Dienst. Die ausgelieferte Konfiguration enthält kein aktives Ziel: Der Dienst startet und wartet.
 
 Prüfen Sie Paketzustand und Programmversion:
 
@@ -103,7 +103,7 @@ sudo -u allwatch env ALLWATCH_RUNTIME=/run/allwatch \
   allwatch --diagnose /etc/allwatch/allwatch.conf
 ```
 
-Es zeigt Version, Konfigurationspfad, Laufzeitpfad, Protokollpfad, das Verhalten bei Hängern und für jedes Ziel Kennung, Port und Richtlinie. Es endet mit `0`, wenn die Konfiguration lesbar und die vorhandenen Laufzeit- und Protokollverzeichnisse nutzbar sind, sonst mit `1`. Es startet kein Ziel und sondiert keinen Port.
+Es zeigt Version, Konfigurationspfad, Laufzeitpfad, Protokollpfad, das Verhalten bei Hängern und für jedes Ziel Kennung, Port und Richtlinie. Es endet mit `0`, wenn die Konfiguration lesbar, ein vorhandenes Laufzeitverzeichnis dem aktuellen Benutzer gehörend und ein vorhandenes Protokollverzeichnis beschreibbar ist. Es endet mit `1` bei unlesbarer Konfiguration, ungültigem `ON_FREEZE`, nicht numerischem `POLL_SECONDS`, einem vorhandenen Laufzeitverzeichnis, das nicht dem aktuellen Benutzer gehört, oder einem vorhandenen Protokollverzeichnis, das nicht beschreibbar ist. Es startet kein Ziel und sondiert keinen Port.
 
 ## Ein Ziel stoppen, ohne den Dienst zu stoppen
 
@@ -117,7 +117,7 @@ AllWatch entfernt die Datei, wenn das Ziel endet, und startet es nicht neu. Die 
 
 ## Den Dienst unter einem anderen Benutzer betreiben
 
-Der Dienst läuft als `allwatch`. Wenn ein Ziel root oder ein anderes Konto braucht, legen Sie ein Drop-in an:
+Der Dienst läuft als `allwatch`. Wenn die Ziele root oder ein anderes Konto brauchen, legen Sie ein Drop-in an:
 
 ```bash
 sudo systemctl edit allwatch

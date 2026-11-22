@@ -1,6 +1,6 @@
 % ALLWATCH(1) allwatch | Commandes utilisateur
 % Ronan Davalan
-% 2026-11-21
+% 2026-11-22
 
 # NOM
 
@@ -41,13 +41,19 @@ La configuration est lue une fois au démarrage. Le fichier par défaut est
 
 **--diagnose** [*CONFIGURATION*]
 :   Lire la configuration, afficher la version, le chemin de la configuration,
-    le répertoire d'état, le chemin du journal, la conduite sur gel et
-    l'identifiant, le port et la politique de chaque cible configurée, puis
-    sortir. Il indique aussi si un répertoire d'état et un répertoire de
-    journal existants sont utilisables. Ne lance ni ne sonde aucune cible et
-    n'écrit ni état ni journal. Sort avec `0` si la configuration est lisible
-    et si les répertoires d'état et de journal existants sont utilisables, `1`
-    sinon.
+    le répertoire d'état, le chemin du journal, la conduite sur gel, le nombre
+    de cibles et l'identifiant, le port et la politique de chaque cible
+    configurée, puis sortir. Il indique aussi si un répertoire d'état existant
+    est un répertoire appartenant à l'utilisateur courant et si un répertoire
+    de journal existant est inscriptible. Ne lance ni ne sonde aucune cible et
+    n'écrit ni état ni journal. Une erreur de configuration est signalée sur la
+    sortie d'erreur avant tout listing. Sort avec `0` si la configuration est
+    lisible, qu'un répertoire d'état existant appartient à l'utilisateur
+    courant et qu'un répertoire de journal existant est inscriptible. Sort avec
+    `1` pour une configuration illisible, un `ON_FREEZE` invalide, un
+    `POLL_SECONDS` non numérique, un répertoire d'état existant qui n'est pas
+    un répertoire appartenant à l'utilisateur courant, ou un répertoire de
+    journal existant qui n'est pas inscriptible.
 
 Les options ne sont reconnues qu'en première position.
 
@@ -115,8 +121,10 @@ Politiques :
     `id.stop` existe dans le répertoire d'état.
 
 **on-failure**
-:   Relancer après un plantage ou un blocage ; laisser la cible arrêtée après
-    une fin propre avec le code 0.
+:   Relancer après un plantage, ou après un blocage qu'AllWatch a neutralisé
+    (`ON_FREEZE=restart`) ; laisser la cible arrêtée après une fin propre avec
+    le code 0. Avec `ON_FREEZE=alert`, une cible plantée est laissée vivante et
+    n'est pas relancée.
 
 **transient**
 :   Ne jamais relancer la cible.
@@ -156,9 +164,9 @@ processus, le port et le journal plat.
 
 **Quitté**
 :   La cible s'est terminée et sa politique dit de la laisser arrêtée, ou un
-    drapeau d'arrêt de l'opérateur a été pris en compte. Le fichier PID et le
-    fichier d'arrêt sont retirés, et la cible n'est plus surveillée jusqu'au
-    redémarrage du superviseur.
+    drapeau d'arrêt de l'opérateur a été pris en compte. Le fichier PID est
+    retiré, ainsi que le fichier d'arrêt s'il a été utilisé ; la cible n'est
+    plus surveillée jusqu'au redémarrage du superviseur.
 
 **Verrouillé (VERROU_CRITIQUE)**
 :   La cible a atteint `MAX_RESTARTS` relances dans `RESTART_WINDOW`.
@@ -173,9 +181,9 @@ processus, le port et le journal plat.
     `id.pid` et un fichier `id.fails` par cible ; un fichier `id.stop` est
     créé par l'opérateur pour demander un arrêt volontaire. Le répertoire est
     créé avec le mode `0700` s'il est absent ; un répertoire existant doit
-    appartenir à l'utilisateur courant. AllWatch retire ses propres fichiers
-    `.pid`, `.stop` et `.fails` à l'arrêt ; les autres fichiers restent. Le
-    changer avec la variable d'environnement `ALLWATCH_RUNTIME`.
+    appartenir à l'utilisateur courant. AllWatch retire les fichiers `.pid`,
+    `.stop` et `.fails` du répertoire à l'arrêt ; les autres fichiers restent.
+    Le changer avec la variable d'environnement `ALLWATCH_RUNTIME`.
 
 `$XDG_STATE_HOME/allwatch/allwatch.log`, `$HOME/.local/state/allwatch/allwatch.log`
 :   Journal plat, une ligne par événement (`date id événement`). Le
@@ -216,9 +224,9 @@ rechargée à chaud : après une modification, lancer :
     systemctl restart allwatch
 
 Les commandes des cibles héritent de l'utilisateur, du groupe et du répertoire
-de travail (`/var/lib/allwatch`) du service. Pour exécuter une cible sous un
-autre utilisateur, créer un drop-in avec `systemctl edit allwatch` et
-renseigner `User=` et `Group=`.
+de travail (`/var/lib/allwatch`) du service. Pour exécuter le service et toutes
+ses cibles sous un autre utilisateur, créer un drop-in avec
+`systemctl edit allwatch` et renseigner `User=` et `Group=`.
 
 Commandes utiles :
 
@@ -234,7 +242,7 @@ Commandes utiles :
 
 **SIGTERM**, **SIGINT**
 :   Le superviseur arrête chaque cible encore présente avec `SIGTERM`, attend
-    environ 5 secondes sa fin, envoie `SIGKILL` si nécessaire, retire ses
+    environ 5 secondes sa fin, envoie `SIGKILL` si nécessaire, retire les
     fichiers `.pid`, `.stop` et `.fails`, écrit `allwatch ARRET` dans le
     journal et sort (`130` pour `SIGINT`, `143` pour `SIGTERM`).
 
@@ -269,10 +277,10 @@ Commandes utiles :
     `SIGINT` ou `SIGTERM` et ne renvoie donc pas `0` en fonctionnement normal.
 
 **1**
-:   Fichier de configuration illisible, répertoire d'état qui n'appartient pas
-    à l'utilisateur courant, contrôle de chemin de `--diagnose` en échec, ou
-    erreur fatale (par exemple un `POLL_SECONDS` non numérique, ou un
-    répertoire d'état ou de journal non inscriptible).
+:   Fichier de configuration illisible, `ON_FREEZE` invalide, répertoire
+    d'état qui n'appartient pas à l'utilisateur courant, contrôle de chemin de
+    `--diagnose` en échec, ou erreur fatale (par exemple un `POLL_SECONDS` non
+    numérique, ou un répertoire d'état ou de journal non inscriptible).
 
 **130**
 :   Interruption par `SIGINT`.
@@ -281,7 +289,9 @@ Commandes utiles :
 :   Terminaison par `SIGTERM`.
 
 Le code de sortie d'une cible sert au superviseur à appliquer la politique,
-mais il n'est pas renvoyé comme code de sortie du superviseur.
+mais il n'est pas renvoyé comme code de sortie du superviseur. Les autres
+échecs fatals du shell ou d'un utilitaire système renvoient le code non nul de
+cette commande, le plus souvent `1`.
 
 # EXEMPLES
 
@@ -319,9 +329,10 @@ redémarrer le service :
     systemctl status allwatch
     journalctl -u allwatch -f
 
-La maquette accepte `SIGUSR1` (cesser d'écouter, rester vivante), `SIGUSR2`
-(planter avec le code 1) et `SIGTERM` (fin propre avec le code 0). Pour
-demander l'arrêt volontaire d'une cible, créer son fichier d'arrêt sous
+La maquette exige `nc` (paquet `netcat-openbsd`) et `setpriv`
+(`util-linux`). Elle accepte `SIGUSR1` (cesser d'écouter, rester vivante),
+`SIGUSR2` (planter avec le code 1) et `SIGTERM` (fin propre avec le code 0).
+Pour demander l'arrêt volontaire d'une cible, créer son fichier d'arrêt sous
 l'utilisateur du service :
 
     sudo -u allwatch touch /run/allwatch/demo.stop
@@ -338,10 +349,11 @@ l'utilisateur du service :
   validés. Un `POLL_SECONDS` nul fait tourner la boucle sans repos ; un
   `POLL_SECONDS` non numérique arrête le superviseur avec le code `1` ; un
   `PROBE_TIMEOUT` non numérique fait échouer toutes les sondes ; une politique
-  mal orthographiée agit comme `always` ; un `MAX_RESTARTS` ou un
-  `RESTART_WINDOW` non numérique peut empêcher d'atteindre la limite de
-  relances. `ON_FREEZE` est validé : une valeur inconnue arrête le superviseur
-  avec le code `1`.
+  mal orthographiée agit comme `always` ; un `MAX_RESTARTS` non numérique fait
+  échouer chaque contrôle de limite, donc une cible `always` ou `on-failure`
+  continue d'être relancée ; un `RESTART_WINDOW` non numérique arrête le
+  superviseur avec le code `1` au prochain calcul de la fenêtre. `ON_FREEZE`
+  est validé : une valeur inconnue arrête le superviseur avec le code `1`.
 - Avec `ON_FREEZE=alert`, une cible dont le port reste fermé est laissée
   vivante et gelée ; AllWatch journalise `ALERTE GEL` une fois et ne la
   rétablit que si le port répond de nouveau ou si le processus meurt.

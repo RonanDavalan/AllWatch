@@ -26,7 +26,7 @@ El paquete crea el usuario y el grupo de sistema `allwatch` (directorio personal
 sudo apt install ./allwatch_0.1.0-4_all.deb
 ```
 
-El paquete instala el programa y la unidad, activa `allwatch.service`, lo inicia y entrega una configuración sin objetivo activo.
+El paquete instala el programa y la unidad. Cuando systemd está en ejecución, activa `allwatch.service` y lo inicia. La configuración entregada no contiene ningún objetivo activo: el servicio arranca y espera.
 
 Compruebe el estado del paquete y la versión del programa:
 
@@ -103,7 +103,7 @@ sudo -u allwatch env ALLWATCH_RUNTIME=/run/allwatch \
   allwatch --diagnose /etc/allwatch/allwatch.conf
 ```
 
-Muestra la versión, la ruta de configuración, la ruta de ejecución, la ruta del diario, la conducta ante un bloqueo y, para cada objetivo, su identificador, puerto y política. Devuelve `0` cuando la configuración es legible y los directorios de ejecución y diario existentes son utilizables, `1` en caso contrario. No inicia ningún objetivo ni sondea ningún puerto.
+Muestra la versión, la ruta de configuración, la ruta de ejecución, la ruta del diario, la conducta ante un bloqueo y, para cada objetivo, su identificador, puerto y política. Devuelve `0` cuando la configuración es legible, un directorio de ejecución existente pertenece al usuario actual y un directorio de diario existente es escribible. Devuelve `1` por una configuración ilegible, un `ON_FREEZE` inválido, un `POLL_SECONDS` no numérico, un directorio de ejecución existente que no pertenece al usuario actual, o un directorio de diario existente que no es escribible. No inicia ningún objetivo ni sondea ningún puerto.
 
 ## Detener un objetivo sin detener el servicio
 
@@ -117,7 +117,7 @@ AllWatch retira el archivo cuando el objetivo termina y no lo reinicia. El archi
 
 ## Ejecutar el servicio con otro usuario
 
-El servicio se ejecuta como `allwatch`. Si un objetivo necesita root u otra cuenta, cree un drop-in:
+El servicio se ejecuta como `allwatch`. Si los objetivos necesitan root u otra cuenta, cree un drop-in:
 
 ```bash
 sudo systemctl edit allwatch

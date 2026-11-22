@@ -1,6 +1,6 @@
 % ALLWATCH(1) allwatch | Benutzerbefehle
 % Ronan Davalan
-% 2026-11-21
+% 2026-11-22
 
 # NAME
 
@@ -42,12 +42,20 @@ Die Konfiguration wird beim Start einmal gelesen. Standard ist
 
 **--diagnose** [*KONFIGURATION*]
 :   Die Konfiguration lesen, Version, Konfigurationspfad, Zustandsverzeichnis,
-    Journalpfad, das Verhalten bei Hängern sowie Kennung, Port und Richtlinie
-    jedes konfigurierten Ziels ausgeben und beenden. Es meldet außerdem, ob ein
-    vorhandenes Zustands- und Journalverzeichnis nutzbar ist. Startet und
-    prüft kein Ziel und schreibt weder Zustand noch Journal. Exit-Code `0`,
-    wenn die Konfiguration lesbar und die vorhandenen Zustands- und
-    Journalverzeichnisse nutzbar sind, sonst `1`.
+    Journalpfad, das Verhalten bei Hängern, die Anzahl der Ziele sowie Kennung,
+    Port und Richtlinie jedes konfigurierten Ziels ausgeben und beenden. Es
+    meldet außerdem, ob ein vorhandenes Zustandsverzeichnis ein dem aktuellen
+    Benutzer gehörendes Verzeichnis ist und ob ein vorhandenes
+    Journalverzeichnis beschreibbar ist. Startet und prüft kein Ziel und
+    schreibt weder Zustand noch Journal. Ein Konfigurationsfehler wird vor
+    jeder Auflistung auf der Standardfehlerausgabe gemeldet. Exit-Code `0`,
+    wenn die Konfiguration lesbar ist, ein vorhandenes Zustandsverzeichnis dem
+    aktuellen Benutzer gehört und ein vorhandenes Journalverzeichnis
+    beschreibbar ist. Exit-Code `1` bei unlesbarer Konfiguration, ungültigem
+    `ON_FREEZE`, nicht numerischem `POLL_SECONDS`, einem vorhandenen
+    Zustandsverzeichnis, das kein dem aktuellen Benutzer gehörendes Verzeichnis
+    ist, oder einem vorhandenen Journalverzeichnis, das nicht beschreibbar
+    ist.
 
 Die Optionen werden nur als erstes Argument erkannt.
 
@@ -115,8 +123,10 @@ Richtlinien:
     Datei `id.stop` existiert im Zustandsverzeichnis.
 
 **on-failure**
-:   Nach einem Absturz oder Hänger neu starten; nach einem sauberen Ende mit
-    Code 0 gestoppt lassen.
+:   Nach einem Absturz oder nach einem Hänger, den AllWatch neutralisiert hat
+    (`ON_FREEZE=restart`), neu starten; nach einem sauberen Ende mit Code 0
+    gestoppt lassen. Mit `ON_FREEZE=alert` bleibt ein hängendes Ziel am Leben
+    und wird nicht neu gestartet.
 
 **transient**
 :   Das Ziel nie neu starten.
@@ -157,9 +167,9 @@ den Prozess, den Port und das flache Journal sichtbar.
 
 **Beendet**
 :   Das Ziel ist zu Ende und seine Richtlinie lässt es gestoppt, oder ein
-    Stopp-Flag des Betreibers wurde berücksichtigt. Die PID-Datei und die
-    Stopp-Datei werden entfernt, und das Ziel wird bis zum Neustart des
-    Supervisors nicht mehr überwacht.
+    Stopp-Flag des Betreibers wurde berücksichtigt. Die PID-Datei wird
+    entfernt, ebenso die Stopp-Datei, wenn eine verwendet wurde; das Ziel wird
+    bis zum Neustart des Supervisors nicht mehr überwacht.
 
 **Gesperrt (VERROU_CRITIQUE)**
 :   Das Ziel hat `MAX_RESTARTS` Neustarts innerhalb von `RESTART_WINDOW`
@@ -175,10 +185,10 @@ den Prozess, den Port und das flache Journal sichtbar.
     `id.pid` und eine Datei `id.fails` pro Ziel; eine Datei `id.stop` wird vom
     Betreiber angelegt, um ein bewusstes Ende zu verlangen. Das Verzeichnis
     wird mit Modus `0700` angelegt, wenn es fehlt; ein vorhandenes Verzeichnis
-    muss dem aktuellen Benutzer gehören. AllWatch entfernt beim Stoppen seine
-    eigenen Dateien `.pid`, `.stop` und `.fails`; andere Dateien bleiben. Das
-    Verzeichnis lässt sich mit der Umgebungsvariable `ALLWATCH_RUNTIME`
-    ändern.
+    muss dem aktuellen Benutzer gehören. AllWatch entfernt beim Stoppen die
+    Dateien `.pid`, `.stop` und `.fails` aus dem Verzeichnis; andere Dateien
+    bleiben. Das Verzeichnis lässt sich mit der Umgebungsvariable
+    `ALLWATCH_RUNTIME` ändern.
 
 `$XDG_STATE_HOME/allwatch/allwatch.log`, `$HOME/.local/state/allwatch/allwatch.log`
 :   Flaches Ereignisjournal, eine Zeile pro Ereignis (`Datum id Ereignis`).
@@ -221,9 +231,9 @@ startet danach seine Ziele gemäß ihrer Richtlinie neu. Die Konfiguration wird 
     systemctl restart allwatch
 
 Die Befehle der Ziele erben Benutzer, Gruppe und Arbeitsverzeichnis
-(`/var/lib/allwatch`) des Dienstes. Um ein Ziel unter einem anderen Benutzer
-auszuführen, ein Drop-in mit `systemctl edit allwatch` anlegen und `User=` und
-`Group=` setzen.
+(`/var/lib/allwatch`) des Dienstes. Um den Dienst und alle seine Ziele unter
+einem anderen Benutzer auszuführen, ein Drop-in mit `systemctl edit allwatch`
+anlegen und `User=` und `Group=` setzen.
 
 Nützliche Befehle:
 
@@ -240,7 +250,7 @@ Nützliche Befehle:
 **SIGTERM**, **SIGINT**
 :   Der Supervisor stoppt jedes noch vorhandene Ziel mit `SIGTERM`, wartet
     etwa 5 Sekunden auf dessen Ende, sendet bei Bedarf `SIGKILL`, entfernt
-    seine Dateien `.pid`, `.stop` und `.fails`, schreibt `allwatch ARRET` ins
+    die Dateien `.pid`, `.stop` und `.fails`, schreibt `allwatch ARRET` ins
     Journal und beendet sich (`130` für `SIGINT`, `143` für `SIGTERM`).
 
 **SIGTERM** an ein Ziel
@@ -275,11 +285,11 @@ Nützliche Befehle:
     zurück.
 
 **1**
-:   Konfigurationsdatei nicht lesbar, Zustandsverzeichnis gehört nicht dem
-    aktuellen Benutzer, eine Pfadprüfung von `--diagnose` ist fehlgeschlagen,
-    oder ein fataler Laufzeitfehler (zum Beispiel ein nicht numerischer
-    `POLL_SECONDS` oder ein nicht beschreibbares Zustands- oder
-    Journalverzeichnis).
+:   Konfigurationsdatei nicht lesbar, ungültiges `ON_FREEZE`,
+    Zustandsverzeichnis gehört nicht dem aktuellen Benutzer, eine Pfadprüfung
+    von `--diagnose` ist fehlgeschlagen, oder ein fataler Laufzeitfehler (zum
+    Beispiel ein nicht numerischer `POLL_SECONDS` oder ein nicht
+    beschreibbares Zustands- oder Journalverzeichnis).
 
 **130**
 :   Unterbrochen durch `SIGINT`.
@@ -288,7 +298,9 @@ Nützliche Befehle:
 :   Beendet durch `SIGTERM`.
 
 Der Exit-Code eines Ziels wird vom Supervisor für die Richtlinie verwendet,
-aber nicht als Exit-Code des Supervisors zurückgegeben.
+aber nicht als Exit-Code des Supervisors zurückgegeben. Andere fatale Fehler
+der Shell oder eines Systemwerkzeugs geben den Exit-Code des fehlgeschlagenen
+Befehls zurück, meist `1`.
 
 # BEISPIELE
 
@@ -326,7 +338,8 @@ Dienst neu starten:
     systemctl status allwatch
     journalctl -u allwatch -f
 
-Die Testmaquette akzeptiert `SIGUSR1` (Lauschen beenden, am Leben bleiben),
+Die Testmaquette benötigt `nc` (Paket `netcat-openbsd`) und `setpriv`
+(`util-linux`). Sie akzeptiert `SIGUSR1` (Lauschen beenden, am Leben bleiben),
 `SIGUSR2` (mit Exit-Code 1 abstürzen) und `SIGTERM` (sauberes Ende mit Code
 0). Um ein bewusstes Ende eines Ziels zu verlangen, seine Stopp-Datei als
 Dienstbenutzer anlegen:
@@ -346,9 +359,11 @@ Dienstbenutzer anlegen:
   nicht numerischer `POLL_SECONDS` beendet den Supervisor mit Exit-Code `1`;
   ein nicht numerischer `PROBE_TIMEOUT` lässt jede Sonde fehlschlagen; eine
   falsch geschriebene Richtlinie wirkt wie `always`; ein nicht numerischer
-  `MAX_RESTARTS` oder `RESTART_WINDOW` kann verhindern, dass die
-  Neustartgrenze erreicht wird. `ON_FREEZE` wird geprüft: Ein unbekannter Wert
-  beendet den Supervisor mit Exit-Code `1`.
+  `MAX_RESTARTS` lässt jede Grenzprüfung fehlschlagen, sodass ein
+  `always`- oder `on-failure`-Ziel weiter neu gestartet wird; ein nicht
+  numerischer `RESTART_WINDOW` beendet den Supervisor mit Exit-Code `1`,
+  sobald das Fenster als Nächstes berechnet wird. `ON_FREEZE` wird geprüft:
+  Ein unbekannter Wert beendet den Supervisor mit Exit-Code `1`.
 - Mit `ON_FREEZE=alert` bleibt ein Ziel, dessen Port geschlossen bleibt, am
   Leben und hängt; AllWatch schreibt `ALERTE GEL` einmal und erholt es nur,
   wenn der Port wieder antwortet oder der Prozess stirbt.
