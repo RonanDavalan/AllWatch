@@ -27,7 +27,7 @@ shell 为 `/usr/sbin/nologin`）。服务以该用户身份从 `/var/lib/allwatc
 ## 安装
 
 ```bash
-sudo apt install ./allwatch_0.1.0-6_all.deb
+sudo apt install ./allwatch_0.1.0-7_all.deb
 ```
 
 软件包安装程序和单元。当 systemd 正在运行时，它会启用并启动 `allwatch.service`。
@@ -40,7 +40,7 @@ dpkg -s allwatch | grep -E '^(Status|Version):'
 allwatch --version
 ```
 
-`allwatch --version` 输出 `allwatch 0.1.0`；软件包版本是 `0.1.0-6`。
+`allwatch --version` 输出 `allwatch 0.1.0`；软件包版本是 `0.1.0-7`。
 
 ## 路径和文件
 
@@ -162,7 +162,7 @@ sudo systemctl restart allwatch
 ## 升级
 
 ```bash
-sudo apt install ./allwatch_0.1.0-6_all.deb
+sudo apt install ./allwatch_0.1.0-7_all.deb
 ```
 
 `/etc/allwatch/allwatch.conf` 会被保留；如果软件包中的版本发生变化，
