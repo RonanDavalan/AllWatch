@@ -2,7 +2,7 @@
 
 [![版本](https://img.shields.io/badge/version-0.1.0-115E67)](https://allwatch.davalan.fr/zh/download/)
 [![许可证](https://img.shields.io/badge/license-MIT-115E67)](../../LICENSE)
-[![平台](https://img.shields.io/badge/platform-Debian%20%7C%20Ubuntu-DCA134)](https://allwatch.davalan.fr/zh/download/)
+[![平台](https://img.shields.io/badge/platform-Debian%20%7C%20Ubuntu%20%7C%20Fedora%20%7C%20openSUSE%20%7C%20Arch-DCA134)](https://allwatch.davalan.fr/zh/download/)
 
 [English](../../README.md) | [Français](../fr-FR/README.md) | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md) | [中文](README.md)
 
@@ -48,6 +48,33 @@ sudo apt purge allwatch
 ```
 
 `apt remove` 停止服务但保留其启用状态；`apt purge` 还会移除配置和服务状态。
+
+## 在 Fedora、openSUSE Leap 和 Arch Linux 上安装
+
+同一个标签还会构建原生软件包：Fedora 的 `.rpm`、openSUSE Leap 的 `.rpm` 和 Arch Linux 的 `.pkg.tar.zst`。从[下载页面](https://allwatch.davalan.fr/zh/download/)下载您所用发行版系列的文件和 `SHA256SUMS`，然后运行对应的命令行（依次为 Fedora、openSUSE Leap、Arch Linux）：
+
+```bash
+sudo dnf install ./allwatch-0.1.0-1.fc44.noarch.rpm
+sudo zypper install --allow-unsigned-rpm ./allwatch-0.1.0-1.leap160.noarch.rpm
+sudo pacman -U ./allwatch-0.1.0-1-any.pkg.tar.zst
+```
+
+公布的验证级别：**安装和诊断已在容器中验证**，涵盖 Fedora 43、44 和 45、openSUSE Leap 16.0 以及 Arch Linux。这些软件包不作为已在物理服务器上测试过的软件包来介绍。服务已安装但未启动：请先把您的目标添加到 `/etc/allwatch/allwatch.conf`，再运行 `sudo systemctl enable --now allwatch`。`allwatch --version`、`--help` 和 `--diagnose` 与上文所示相同。
+
+移除软件包：
+
+```bash
+sudo dnf remove allwatch
+sudo zypper remove allwatch
+sudo pacman -R allwatch
+```
+
+移除后会保留系统用户 `allwatch` 和 `/var/lib/allwatch`，以及您修改过的配置（保存为 `allwatch.conf.rpmsave` 或 `allwatch.conf.pacsave`）。若要一并清除：
+
+```bash
+sudo userdel allwatch
+sudo rm -rf /etc/allwatch /var/lib/allwatch
+```
 
 ## 从源代码仓库运行
 

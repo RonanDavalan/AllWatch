@@ -59,6 +59,33 @@ sudo apt purge allwatch
 `apt remove` arrête le service mais le laisse activé ; `apt purge` retire aussi
 la configuration et l'état du service.
 
+## Installer sur Fedora, openSUSE Leap et Arch Linux
+
+Le même tag construit aussi des paquets natifs : un `.rpm` pour Fedora, un `.rpm` pour openSUSE Leap et un `.pkg.tar.zst` pour Arch Linux. Téléchargez le fichier de votre famille et `SHA256SUMS` depuis la [page de téléchargement](https://allwatch.davalan.fr/fr/download/), puis lancez la ligne de votre famille (Fedora, openSUSE Leap, Arch Linux, dans cet ordre) :
+
+```bash
+sudo dnf install ./allwatch-0.1.0-1.fc44.noarch.rpm
+sudo zypper install --allow-unsigned-rpm ./allwatch-0.1.0-1.leap160.noarch.rpm
+sudo pacman -U ./allwatch-0.1.0-1-any.pkg.tar.zst
+```
+
+Niveau annoncé : **installation et diagnostic validés en conteneur**, sur Fedora 43, 44 et 45, sur openSUSE Leap 16.0 et sur Arch Linux. Les paquets ne sont pas présentés comme testés sur un serveur physique. Le service est installé mais pas démarré : ajoutez vos cibles à `/etc/allwatch/allwatch.conf`, puis lancez `sudo systemctl enable --now allwatch`. Les commandes `allwatch --version`, `--help` et `--diagnose` sont celles montrées plus haut.
+
+Pour retirer le paquet :
+
+```bash
+sudo dnf remove allwatch
+sudo zypper remove allwatch
+sudo pacman -R allwatch
+```
+
+Le retrait garde l'utilisateur système `allwatch` et `/var/lib/allwatch`, ainsi que votre configuration si vous l'avez modifiée (sauvegardée en `allwatch.conf.rpmsave` ou `allwatch.conf.pacsave`). Pour les effacer aussi :
+
+```bash
+sudo userdel allwatch
+sudo rm -rf /etc/allwatch /var/lib/allwatch
+```
+
 ## Exécution depuis le dépôt de code
 
 Prérequis : Linux (le superviseur lit `/proc`), Bash 5 ou plus récent, et

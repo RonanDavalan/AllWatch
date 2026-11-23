@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-0.1.0-115E67)](https://allwatch.davalan.fr/download/)
 [![License](https://img.shields.io/badge/license-MIT-115E67)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Debian%20%7C%20Ubuntu-DCA134)](https://allwatch.davalan.fr/download/)
+[![Platform](https://img.shields.io/badge/platform-Debian%20%7C%20Ubuntu%20%7C%20Fedora%20%7C%20openSUSE%20%7C%20Arch-DCA134)](https://allwatch.davalan.fr/download/)
 
 [English](README.md) | [Français](docs/fr-FR/README.md) | [Deutsch](docs/de-DE/README.md) | [Español](docs/es-ES/README.md) | [中文](docs/zh-CN/README.md)
 
@@ -58,6 +58,33 @@ sudo apt purge allwatch
 
 `apt remove` stops the service but leaves it enabled; `apt purge` also removes
 the configuration and the service state.
+
+## Install on Fedora, openSUSE Leap and Arch Linux
+
+The same tag also builds native packages: an `.rpm` for Fedora, an `.rpm` for openSUSE Leap and a `.pkg.tar.zst` for Arch Linux. Download the file for your family and `SHA256SUMS` from the [download page](https://allwatch.davalan.fr/download/), then run the line of your family (Fedora, openSUSE Leap, Arch Linux, in this order):
+
+```bash
+sudo dnf install ./allwatch-0.1.0-1.fc44.noarch.rpm
+sudo zypper install --allow-unsigned-rpm ./allwatch-0.1.0-1.leap160.noarch.rpm
+sudo pacman -U ./allwatch-0.1.0-1-any.pkg.tar.zst
+```
+
+Level announced: **installation and diagnosis validated in a container**, on Fedora 43, 44 and 45, on openSUSE Leap 16.0 and on Arch Linux. The packages are not presented as tested on a physical server. The service is installed but not started: add your targets to `/etc/allwatch/allwatch.conf`, then run `sudo systemctl enable --now allwatch`. The commands `allwatch --version`, `--help` and `--diagnose` are the ones shown above.
+
+To remove the package:
+
+```bash
+sudo dnf remove allwatch
+sudo zypper remove allwatch
+sudo pacman -R allwatch
+```
+
+Removal keeps the `allwatch` system user and `/var/lib/allwatch`, and your configuration when you edited it (saved as `allwatch.conf.rpmsave` or `allwatch.conf.pacsave`). To erase them as well:
+
+```bash
+sudo userdel allwatch
+sudo rm -rf /etc/allwatch /var/lib/allwatch
+```
 
 ## Run from the source repository
 

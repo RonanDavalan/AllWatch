@@ -165,6 +165,23 @@ getent passwd allwatch
 getent group allwatch
 ```
 
+## Weitere Familien: Fedora, openSUSE Leap und Arch Linux
+
+Das `.rpm` für Fedora und openSUSE Leap und das `.pkg.tar.zst` für Arch Linux installieren dieselben Dateien an denselben Pfaden wie das Debian-Paket: `/usr/bin/allwatch`, `/usr/lib/systemd/system/allwatch.service`, `/etc/allwatch/allwatch.conf`, die Handbuchseiten und `/usr/share/doc/allwatch`. Installieren Sie die Datei Ihrer Familie (Fedora, openSUSE Leap, Arch Linux, in dieser Reihenfolge); dieselbe Zeile aktualisiert eine installierte Version:
+
+```bash
+sudo dnf install ./allwatch-0.1.0-1.fc44.noarch.rpm
+sudo zypper install --allow-unsigned-rpm ./allwatch-0.1.0-1.leap160.noarch.rpm
+sudo pacman -U ./allwatch-0.1.0-1-any.pkg.tar.zst
+```
+
+Unterschiede zum Debian-Paket: Der Dienst wird installiert, aber nicht gestartet; führen Sie `sudo systemctl enable --now allwatch` aus, sobald Ihre Ziele eingetragen sind. `/etc/allwatch/allwatch.conf` bleibt erhalten, wenn Sie sie geändert haben, und wird beim Entfernen als `allwatch.conf.rpmsave` (Fedora, openSUSE) oder `allwatch.conf.pacsave` (Arch) gesichert. Es gibt kein Purge: Das Entfernen behält den Benutzer `allwatch` und `/var/lib/allwatch`, und das Paket gibt die beiden Befehle aus, die sie löschen:
+
+```bash
+sudo userdel allwatch
+sudo rm -rf /etc/allwatch /var/lib/allwatch
+```
+
 ## Bekannte Grenzen des Pakets
 
 - Die Containervalidierung installiert das Paket, prüft `--version`, `--help` und `--diagnose` und entfernt es wieder. Sie startet systemd nicht; der Dienst ist installiert und dokumentiert, aber im Container nicht unter systemd validiert.

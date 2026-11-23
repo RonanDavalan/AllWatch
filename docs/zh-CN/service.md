@@ -189,6 +189,23 @@ getent passwd allwatch
 getent group allwatch
 ```
 
+## 其他发行版系列：Fedora、openSUSE Leap 和 Arch Linux
+
+Fedora 和 openSUSE Leap 的 `.rpm` 以及 Arch Linux 的 `.pkg.tar.zst` 会把与 Debian 软件包相同的文件安装到相同的路径：`/usr/bin/allwatch`、`/usr/lib/systemd/system/allwatch.service`、`/etc/allwatch/allwatch.conf`、手册页和 `/usr/share/doc/allwatch`。安装您所用系列的文件（依次为 Fedora、openSUSE Leap、Arch Linux）；同一行命令也可升级已安装的版本：
+
+```bash
+sudo dnf install ./allwatch-0.1.0-1.fc44.noarch.rpm
+sudo zypper install --allow-unsigned-rpm ./allwatch-0.1.0-1.leap160.noarch.rpm
+sudo pacman -U ./allwatch-0.1.0-1-any.pkg.tar.zst
+```
+
+与 Debian 软件包的区别：服务已安装但未启动，请在声明好目标后运行一次 `sudo systemctl enable --now allwatch`；若您修改过 `/etc/allwatch/allwatch.conf`，它会被保留，并在移除软件包时保存为 `allwatch.conf.rpmsave`（Fedora、openSUSE）或 `allwatch.conf.pacsave`（Arch）；没有清除（purge）操作，因此移除会保留用户 `allwatch` 和 `/var/lib/allwatch`，软件包会显示清除它们的两条命令：
+
+```bash
+sudo userdel allwatch
+sudo rm -rf /etc/allwatch /var/lib/allwatch
+```
+
 ## 软件包的已知限制
 
 - 容器验证安装软件包，检查 `--version`、`--help` 和 `--diagnose`，然后移除它。
