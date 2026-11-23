@@ -8,23 +8,16 @@
 
 ![Aide d'AllWatch](../images/allwatch-help.png)
 
-AllWatch est un superviseur de processus minimaliste pour Linux, écrit dans un simple script Bash (environ cent cinquante lignes utiles de code). Il lance chaque processus au premier plan, mémorise son PID et évalue son état uniquement à partir des informations fournies par le noyau et le réseau : le processus est-il toujours dans `/proc`, son port TCP accepte-t-il toujours une connexion et quel code de sortie a-t-il renvoyé ? Il redémarre le processus selon une politique définie pour chaque cible et refuse de boucler indéfiniment sur un processus qui s'arrête brutalement.
+AllWatch est un micro-superviseur de processus pour Linux, écrit dans un seul
+script Bash (environ cent cinquante lignes utiles de code). Il lance chaque
+cible au premier plan, mémorise son PID et juge sa santé uniquement à partir de
+ce que disent le noyau et le réseau : le processus est-il toujours dans
+`/proc`, son port TCP accepte-t-il encore une connexion, et quel code de sortie
+a-t-il laissé. Il redémarre la cible selon une politique propre à chaque cible
+et refuse de boucler indéfiniment sur une cible qui meurt aussitôt.
 
-La cible est une boîte noire. Elle ne s'enregistre pas auprès d'AllWatch, ne lui envoie rien et n'a pas besoin de savoir qu'elle existe.
-
-## Comment ça marche
-
-AllWatch est le parent, la cible est l'enfant. Toutes les quelques secondes, il examine chaque cible et la place dans l'un des quatre états suivants :
-
-- **En cours** : le processus existe et son port accepte une connexion.
-- **Bloqué** : le processus existe mais son port ne répond pas. Avec `ON_FREEZE=restart` (le défaut), AllWatch envoie `SIGTERM`, attend l’arrêt de la cible (5 secondes), envoie `SIGKILL` si nécessaire, puis considère la cible comme défaillante. Avec `ON_FREEZE=alert`, il n’envoie aucun signal, journalise `ALERTE GEL` une fois, laisse la cible surveillée et journalise `RETABLI` quand le port répond de nouveau.
-- **Plantage** : le processus s'est arrêté brutalement. AllWatch analyse le code de sortie et redémarre la cible conformément à sa politique.
-- **Quitter** : la cible a atteint sa fin et sa politique indique de ne pas la modifier, ou la limite de redémarrage a été atteinte.
-
-## Exigences
-
-- Linux (le superviseur lit `/proc`), Bash 5 ou plus tard, et `timeout` et `awk` parmi les utilitaires de base habituels.
-- Pour le double test `dummy-target.sh` uniquement : `setpriv` (util-linux) et OpenBSD `nc`.
+La cible est une boîte noire. Elle ne s'enregistre pas auprès d'AllWatch, ne lui
+envoie rien et n'a pas besoin de savoir qu'il existe.
 
 ## Installer sur Debian et Ubuntu
 
@@ -63,32 +56,33 @@ sudo apt remove allwatch
 sudo apt purge allwatch
 ```
 
-`apt remove` arrête le service mais le laisse activé ; `apt purge` retire
-aussi la configuration et l'état du service.
+`apt remove` arrête le service mais le laisse activé ; `apt purge` retire aussi
+la configuration et l'état du service.
 
-## Structure du dépôt
+## Exécution depuis le dépôt de code
 
-- `allwatch.sh` : le superviseur.
-- `allwatch.conf` : un exemple de configuration, une cible sur le port 9001.
-- `dummy-target.sh` : un double de test qui écoute sur un port TCP et qui peut être configuré pour s’arrêter proprement, se bloquer ou planter à la demande.
-- `LICENSE` : MIT.
-
-## Démarrage rapide
-
-Depuis le répertoire du dépôt, dans un premier terminal, démarrez le superviseur avec la configuration d'exemple :
+Prérequis : Linux (le superviseur lit `/proc`), Bash 5 ou plus récent, et
+`timeout` et `awk` parmi les utilitaires de base habituels. Pour le double de
+test `dummy-target.sh` seulement : `setpriv` (util-linux) et OpenBSD `nc`.
 
 ```bash
+git clone https://github.com/RonanDavalan/AllWatch.git
+cd AllWatch
+./allwatch.sh --version
+./allwatch.sh --help
 ./allwatch.sh allwatch.conf
 ```
 
-Il lance `dummy-target.sh` sur le port 9001 sous l'identifiant `demo`. Dans un second terminal, depuis n'importe quel répertoire, examinez la cible :
+La configuration d'exemple lance `dummy-target.sh` sur le port 9001 sous
+l'identifiant `demo`. Dans un second terminal, examinez la cible :
 
 ```bash
 cat /tmp/allwatch-runtime/demo.pid
 : > /dev/tcp/127.0.0.1/9001 && echo "le port 9001 répond"
 ```
 
-Éliminez la cible de manière radicale et observez-la revenir avec un nouveau PID (l'intervalle d'interrogation est de 5 secondes) :
+Éliminez la cible de manière radicale et observez-la revenir avec un nouveau PID
+(l'intervalle d'interrogation est de 5 secondes) :
 
 ```bash
 kill -9 "$(cat /tmp/allwatch-runtime/demo.pid)"
@@ -96,81 +90,121 @@ sleep 6
 cat /tmp/allwatch-runtime/demo.pid
 ```
 
-Provoquez le blocage de la cible (elle reste active mais ferme son port). AllWatch le détecte, l'arrête et la redémarre, ce qui prend environ quinze secondes :
+Provoquez le blocage de la cible (elle reste active mais ferme son port).
+AllWatch le détecte, l'arrête et la redémarre, ce qui prend environ quinze
+secondes :
 
 ```bash
 kill -USR1 "$(cat /tmp/allwatch-runtime/demo.pid)"
 sleep 20
-cat /tmp/allwatch-runtime/demo.pid
 grep ' demo ' ~/.local/state/allwatch/allwatch.log | tail -n 6
 ```
 
-Le journal affiche `DEMARRE` pour le premier lancement, `CRASHE code=137` puis `RELANCE` pour l'arrêt brutal, puis `PLANTE`, `NEUTRALISE SIGTERM` et `RELANCE` pour le blocage. Enfin, arrêtez le superviseur avec `Ctrl+C` dans le premier terminal (ou envoyez-lui `SIGTERM`) ; il arrête ses cibles et vide son répertoire d'état.
+Arrêtez le superviseur avec `Ctrl+C` (ou `SIGTERM`) ; il arrête ses cibles et
+vide son répertoire d'état :
 
 ```bash
 ls -A /tmp/allwatch-runtime
 ```
 
-La commande n'affiche rien.
+## Comment ça marche
 
-## Configuration : `allwatch.conf`
+AllWatch est le parent, la cible est l'enfant. Toutes les quelques secondes, il
+examine chaque cible et la place dans l'un des quatre états suivants :
 
-Le fichier est lu une seule fois, au démarrage, ligne par ligne. Les lignes vides et les lignes commençant par `#` sont ignorées.
+- **En cours** : le processus existe et son port accepte une connexion.
+- **Bloqué** : le processus existe mais son port ne répond pas. Avec
+  `ON_FREEZE=restart` (le défaut), AllWatch envoie `SIGTERM`, attend l'arrêt de
+  la cible (5 secondes), envoie `SIGKILL` si nécessaire, puis considère la cible
+  comme défaillante. Avec `ON_FREEZE=alert`, il n'envoie aucun signal,
+  journalise `ALERTE GEL` une fois, laisse la cible surveillée et journalise
+  `RETABLI` quand le port répond de nouveau.
+- **Plantage** : le processus a disparu sans arrêt délibéré. AllWatch lit le
+  code de sortie et redémarre la cible si sa politique le demande.
+- **Quitter** : la cible a terminé et sa politique demande de la laisser
+  arrêtée, ou la limite de redémarrage a été atteinte.
 
-Paramètres du moteur, une `KEY=valeur` par ligne :
+## Configuration
 
-- `POLL_SECONDS=5`: secondes entre deux vérifications.
-- `PROBE_TIMEOUT=3`: secondes dont dispose un port pour répondre à la sonde.
-- `MAX_RESTARTS=5`: redémarrages autorisés dans la fenêtre ci-dessous.
-- `RESTART_WINDOW=60`: durée de cette fenêtre, en secondes.
-- `ON_FREEZE=restart`: une cible bloquée est neutralisée et relancée ; `alert` la laisse intacte et journalise `ALERTE GEL`. Toute autre valeur est refusée au démarrage avec le code 1.
+La configuration est lue une seule fois, au démarrage, ligne par ligne. Les
+lignes vides et les lignes commençant par `#` sont ignorées. Paramètres du
+moteur, une ligne `KEY=value` chacun :
+
+- `POLL_SECONDS=5` : secondes entre deux vérifications.
+- `PROBE_TIMEOUT=3` : secondes dont dispose un port pour répondre à la sonde.
+- `MAX_RESTARTS=5` : redémarrages autorisés dans la fenêtre ci-dessous.
+- `RESTART_WINDOW=60` : durée de cette fenêtre, en secondes.
+- `ON_FREEZE=restart` : une cible bloquée est neutralisée et relancée ; `alert`
+  la laisse intacte et journalise `ALERTE GEL`. Toute autre valeur est refusée
+  au démarrage avec le code 1.
 
 Cibles, une par ligne :
 
-```
+```text
 id port policy command...
 ```
 
-- `id` : un nom court, utilisé pour les fichiers d’état et le journal.
-- `port`: le port TCP sur lequel la cible écoute (sondé sur `127.0.0.1`).
-- `policy`: l'une des valeurs suivantes : `always`, `on-failure`, `transient`.
-- `command...`: le reste de la ligne, séparé par des espaces (sans guillemets), exécuté au premier plan depuis le répertoire où `allwatch.sh` a été lancé.
+- `id` : un nom court, utilisé pour les fichiers d'état et le journal.
+- `port` : le port TCP sur lequel la cible écoute (sondé sur `127.0.0.1`).
+- `policy` : l'une des valeurs `always`, `on-failure`, `transient`.
+- `command...` : le reste de la ligne, séparé par des espaces (sans guillemets),
+  exécuté au premier plan depuis le répertoire où `allwatch.sh` a été lancé.
 
 Politiques :
 
-- `always` : redémarrer la cible chaque fois qu’elle se termine, même avec le code de sortie 0, sauf si un fichier `<id>.stop` existe dans le répertoire d’état.
-- `on-failure` : redémarrer après un plantage ou un blocage, mais laisser arrêté après un code de sortie 0.
-- `transient` : ne jamais le redémarrer.
+- `always` : redémarrer la cible chaque fois qu'elle se termine, même avec le
+  code de sortie 0, sauf si un fichier `<id>.stop` existe dans le répertoire
+  d'état.
+- `on-failure` : redémarrer après un plantage ou un blocage, mais laisser
+  arrêtée après un code de sortie 0.
+- `transient` : ne jamais la redémarrer.
 
-Si une cible atteint `MAX_RESTARTS` redémarrages dans les `RESTART_WINDOW` secondes, AllWatch cesse de la redémarrer, enregistre `ALERTE VERROU_CRITIQUE` et continue avec les autres cibles.
+Si une cible atteint `MAX_RESTARTS` redémarrages dans les `RESTART_WINDOW`
+secondes, AllWatch cesse de la redémarrer, enregistre `ALERTE VERROU_CRITIQUE`
+et continue avec les autres cibles.
 
-Utilisation : `./allwatch.sh [fichier.conf]` (par défaut : `allwatch.conf`). Le répertoire d'état est `/tmp/allwatch-runtime` (à remplacer par `ALLWATCH_RUNTIME`). Le journal est un fichier plat, une ligne par événement (`date id event`), situé dans `${XDG_STATE_HOME:-$HOME/.local/state}/allwatch/allwatch.log`.
+Le répertoire d'état est `/tmp/allwatch-runtime` (à remplacer avec
+`ALLWATCH_RUNTIME`) ; le journal est un fichier plat, une ligne par événement
+(`date id event`), dans `${XDG_STATE_HOME:-$HOME/.local/state}/allwatch/allwatch.log`.
 
 ## Le contrat qu'une cible doit respecter
 
 AllWatch ne s'adapte à rien ; la cible qui rompt le contrat est en faute.
 
-- **Premier plan.** La cible s'exécute au premier plan du processus lancé par AllWatch. Elle ne doit pas se transformer en processus démon ni créer de double processus : AllWatch verrait alors le premier processus se terminer et en lancerait un duplicata.
-- **Codes de sortie.** Un arrêt propre et demandé se termine par le code `0`. Toute erreur se termine par un code différent de zéro.
-- **Un port TCP.** Chaque cible possède un port TCP, ouvert et acceptant les connexions dès son initialisation. Une cible active qui n'accepte pas de connexion dans le délai imparti est considérée comme bloquée.
-- **`SIGTERM`.** La cible intercepte `SIGTERM`, libère ses ressources et se termine avec le code `0` en moins de 5 secondes. Ensuite, AllWatch envoie `SIGKILL`.
+- **Premier plan.** La cible s'exécute au premier plan du processus lancé par
+  AllWatch. Elle ne doit pas se transformer en processus démon ni créer de
+  double processus : AllWatch verrait alors le premier processus se terminer et
+  en lancerait un duplicata.
+- **Codes de sortie.** Un arrêt propre et demandé se termine par le code `0`.
+  Toute erreur se termine par un code différent de zéro.
+- **Un port TCP.** Chaque cible possède un port TCP, ouvert et acceptant les
+  connexions dès son initialisation. Une cible active qui n'accepte pas de
+  connexion dans le délai de la sonde est considérée comme bloquée.
+- **`SIGTERM`.** La cible intercepte `SIGTERM`, libère ses ressources et se
+  termine avec le code `0` en moins de 5 secondes. Ensuite, AllWatch envoie
+  `SIGKILL`.
 
-Le titre de la fenêtre, le serveur d'affichage et la sortie propre à la cible ne jouent aucun rôle dans le contrôle d'intégrité.
+Le titre de la fenêtre, le serveur d'affichage et la sortie propre à la cible ne
+jouent aucun rôle dans le contrôle d'intégrité.
 
 ## Limites
 
-- Aucune notification d'enregistrement ou de mise à jour de statut de la cible : AllWatch n'écoute rien de ce que dit la cible.
-- Aucune vérification basée sur Windows, X11 ou Wayland.
-- Aucune analyse des journaux n'est effectuée pour décider d'un redémarrage.
-- Aucune surveillance des cibles qui se détachent du premier plan.
-- Pas de rechargement à chaud de la configuration : `sudo systemctl restart allwatch`.
-- Pas de niveaux de journalisation, pas d'interface réseau, pas de protocole inter-processus.
-- `--diagnose` est statique : il lit la configuration et les chemins, il ne sonde aucune cible et ne prouve pas qu'une cible est saine.
+- Aucun rechargement à chaud de la configuration : `sudo systemctl restart
+  allwatch`.
+- Aucune vérification fondée sur les titres de fenêtre, X11 ou Wayland.
+- Aucune analyse des journaux d'application pour décider d'un redémarrage.
+- Aucune surveillance d'une cible qui se transforme en démon ou fait un double
+  fork.
+- `--diagnose` est statique : il lit la configuration et les chemins, il ne
+  sonde aucune cible et ne prouve pas qu'une cible est saine.
 - `--version`, `--help` et `--diagnose` ne sont reconnus qu'en première position.
-- La commande n'est pas exécutée par un shell : ni guillemets, ni tubes, ni redirections, ni expansion de variables.
-- Les valeurs de configuration et les noms de politique ne sont pas validés.
+- La commande n'est pas exécutée par un shell : ni guillemets, ni tubes, ni
+  redirections, ni expansion de variables.
+- Les valeurs numériques de configuration et les noms de politique ne sont pas
+  validés. Un `POLL_SECONDS` non numérique arrête le superviseur avec le code
+  `1` ; une politique mal orthographiée agit comme `always`. `ON_FREEZE` est
+  validé : une valeur inconnue arrête le superviseur avec le code `1`.
 - Le journal plat n'est pas rotaté.
-- Aucune garantie quant à la cohérence interne des données d'une cible : AllWatch garantit que le processus existe et répond, rien de plus.
 
 ## Licence
 
@@ -178,8 +212,11 @@ MIT. Voir `LICENSE`.
 
 ## Crédits
 
-- **Ronan Davalan** : architecte et arbitre. Il a défini la vision et le périmètre du projet, arbitré les spécifications et les a validées.
-- **Claude Sonnet 5.5** (Anthropic) : seul auteur du code (le superviseur et le double de test), écrit en trois sessions de codage le 13 novembre 2026.
-- **Gemini** (Google) : synthèse stratégique et co-écriture des spécifications : détection des anti-modèles, formalisation de la machine à quatre états.
+- **Ronan Davalan** : architecte et arbitre. Il a défini la vision et le
+  périmètre, arbitré les spécifications et les a validées.
+- **Claude Sonnet 5.5** (Anthropic) : seul auteur du code (le superviseur et le
+  double de test), écrit en trois sessions de codage le 13 novembre 2026.
+- **Gemini** (Google) : synthèse stratégique et co-écriture des spécifications :
+  détection des anti-modèles, formalisation de la machine à quatre états.
 
 Voir `CONTRIBUTORS.md`.
