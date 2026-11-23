@@ -31,8 +31,7 @@ sudo apt install ./allwatch_0.1.0-7_all.deb
 ```
 
 Niveau annoncé : **installation et diagnostic validés en conteneur**, sur
-Debian 12 et 13 et sur Ubuntu 22.04 et 24.04. Le paquet n'est pas présenté
-comme testé sur un serveur physique. Le service est installé et activé, avec
+Debian 12 et 13 et sur Ubuntu 22.04 et 24.04. Le paquet Debian a aussi été éprouvé en vrai : installé comme service sur un Raspberry Pi 4 sous Debian 13, avec une application réelle, pendant deux heures puis six heures (95 événements, 95 réussis, aucun échec), puis retiré et purgé. Le service est installé et activé, avec
 une configuration qui ne déclare aucune cible ; ajoutez vos cibles dans
 `/etc/allwatch/allwatch.conf`, puis lancez `sudo systemctl restart allwatch`.
 
@@ -243,7 +242,9 @@ MIT. Voir `LICENSE`.
   périmètre, arbitré les spécifications et les a validées.
 - **Claude Sonnet 5.5** (Anthropic) : seul auteur du code (le superviseur et le
   double de test), écrit en trois sessions de codage le 13 novembre 2026.
-- **Gemini** (Google) : synthèse stratégique et co-écriture des spécifications :
-  détection des anti-modèles, formalisation de la machine à quatre états.
+- **DeepSeek V4.1 Flash 1017** : documentation de référence, campagne de
+  validation de six heures et rapport de campagne.
+- **Gemini 4 Hydrogène** (Google) : échanges de conception et de réflexion sur
+  le superviseur, idée et conception de l'icône.
 
 Voir `CONTRIBUTORS.md`.

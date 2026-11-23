@@ -26,7 +26,7 @@ sudo apt install ./allwatch_0.1.0-7_all.deb
 ```
 
 公布的验证级别：**安装与诊断已在容器中验证**，覆盖 Debian 12 和 13，以及 Ubuntu 22.04 和 24.04。
-软件包不宣称已在物理服务器上测试。服务安装后处于启用状态，配置不声明任何目标进程；
+Debian 软件包还经过真实环境的检验：作为服务安装在运行 Debian 13 的 Raspberry Pi 4 上，使用真实应用，先运行两小时，再运行六小时（95 个事件，95 个通过，无一失败），随后卸载并清除。服务安装后处于启用状态，配置不声明任何目标进程；
 请把目标加入 `/etc/allwatch/allwatch.conf`，然后运行 `sudo systemctl restart allwatch`。
 
 在不启动目标进程的情况下检查已安装的版本和配置：
@@ -209,6 +209,7 @@ MIT。参见 `LICENSE`。
 - **Ronan Davalan**：架构师和仲裁者。他确定愿景和范围，仲裁并验证规范。
 - **Claude Sonnet 5.5**（Anthropic）：代码的唯一作者（监控器和测试替身），
   于 2026 年 11 月 13 日在三次编码会话中写成。
-- **Gemini**（Google）：战略综合和规范共同撰写：反模式识别、四状态机的形式化。
+- **DeepSeek V4.1 Flash 1017**：参考文档、六小时验证测试及测试报告。
+- **Gemini 4 Hydrogène**（Google）：关于监控器的设计与思考交流，图标的构想与设计。
 
 参见 `CONTRIBUTORS.md`。
