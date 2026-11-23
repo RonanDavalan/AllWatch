@@ -41,18 +41,18 @@ La configuración se lee una vez, al arrancar. El archivo por defecto es
 
 **--diagnose** [*CONFIGURACIÓN*]
 :   Leer la configuración, mostrar la versión, la ruta de la configuración, el
-    directorio de estado, la ruta del diario, la conducta ante un bloqueo, el
+    directorio de estado, la ruta del registro, la conducta ante un bloqueo, el
     número de objetivos y el identificador, puerto y política de cada objetivo
     configurado, y salir. También indica si un directorio de estado existente
-    es un directorio propiedad del usuario actual y si un directorio de diario
+    es un directorio propiedad del usuario actual y si un directorio de registro
     existente es escribible. No inicia ni sondea ningún objetivo y no escribe
-    estado ni diario. Un error de configuración se informa por la salida de
+    estado ni registro. Un error de configuración se informa por la salida de
     error antes de cualquier listado. Sale con `0` si la configuración es
     legible, un directorio de estado existente pertenece al usuario actual y un
-    directorio de diario existente es escribible. Sale con `1` por una
+    directorio de registro existente es escribible. Sale con `1` por una
     configuración ilegible, un `ON_FREEZE` inválido, un `POLL_SECONDS` no
     numérico, un directorio de estado existente que no es un directorio
-    propiedad del usuario actual, o un directorio de diario existente que no es
+    propiedad del usuario actual, o un directorio de registro existente que no es
     escribible.
 
 Las opciones solo se reconocen como primer argumento.
@@ -97,7 +97,7 @@ Objetivos, uno por línea:
 
 **id**
 :   Un nombre corto y único, usado para los archivos de estado y las líneas
-    del diario. No debe contener `/` ni `..`; AllWatch no lo valida.
+    del registro. No debe contener `/` ni `..`; AllWatch no lo valida.
 
 **puerto**
 :   El puerto TCP en el que escucha el objetivo. Se sondea en `127.0.0.1`; un
@@ -140,7 +140,7 @@ archivo no detiene por sí solo un objetivo en ejecución.
 
 El supervisor distingue cuatro estados ordinarios, más un estado excepcional
 de bloqueo. No tiene comando de estado: un estado se lee a través del proceso,
-el puerto y el diario plano.
+el puerto y el registro plano.
 
 **Activo**
 :   El proceso existe y su puerto acepta una conexión.
@@ -185,8 +185,8 @@ el puerto y el diario plano.
     se cambia con la variable de entorno `ALLWATCH_RUNTIME`.
 
 `$XDG_STATE_HOME/allwatch/allwatch.log`, `$HOME/.local/state/allwatch/allwatch.log`
-:   Diario plano, una línea por evento (`fecha id evento`). El directorio se
-    crea si hace falta. AllWatch no rota el diario.
+:   Registro plano, una línea por evento (`fecha id evento`). El directorio se
+    crea si hace falta. AllWatch no rota el registro.
 
 *allwatch.conf*
 :   Archivo de configuración por defecto en el directorio actual cuando no se
@@ -201,7 +201,7 @@ el puerto y el diario plano.
     cada arranque del servicio y eliminado al detenerse.
 
 */var/lib/allwatch/allwatch/allwatch.log*
-:   Diario del servicio Debian (`XDG_STATE_HOME=/var/lib/allwatch`). systemd
+:   Registro del servicio Debian (`XDG_STATE_HOME=/var/lib/allwatch`). systemd
     crea `/var/lib/allwatch`; el script crea su subdirectorio `allwatch`.
 
 */usr/bin/allwatch*
@@ -243,7 +243,7 @@ Comandos útiles:
 :   El supervisor detiene cada objetivo que siga presente con `SIGTERM`,
     espera unos 5 segundos su final, envía `SIGKILL` si hace falta, elimina
     los archivos `.pid`, `.stop` y `.fails`, escribe `allwatch ARRET` en el
-    diario y termina (`130` para `SIGINT`, `143` para `SIGTERM`).
+    registro y termina (`130` para `SIGINT`, `143` para `SIGTERM`).
 
 **SIGTERM** a un objetivo
 :   El objetivo trata la señal; AllWatch observa el código de salida
@@ -279,7 +279,7 @@ Comandos útiles:
 :   Archivo de configuración ilegible, `ON_FREEZE` inválido, directorio de
     estado que no pertenece al usuario actual, una comprobación de ruta de
     `--diagnose` fallida, o error fatal (por ejemplo un `POLL_SECONDS` no
-    numérico, o un directorio de estado o de diario no escribible).
+    numérico, o un directorio de estado o de registro no escribible).
 
 **130**
 :   Interrumpido por `SIGINT`.
@@ -339,7 +339,7 @@ servicio:
 # LÍMITES
 
 - Sin recarga de la configuración en caliente.
-- Sin análisis de diarios de la aplicación para decidir un reinicio.
+- Sin análisis de registros de la aplicación para decidir un reinicio.
 - Sin comprobaciones por título de ventana, X11 o Wayland.
 - Sin supervisión de un objetivo que se separe en segundo plano.
 - El comando no se ejecuta mediante un shell: sin comillas, tuberías,
@@ -369,7 +369,7 @@ servicio:
   los objetivos vivos; con el servicio, systemd elimina `/run/allwatch` al
   detenerse, así que el siguiente supervisor no los adopta y puede iniciar
   duplicados.
-- El diario plano no se rota.
+- El registro plano no se rota.
 - Con cuatro o más objetivos que usen cada uno los 5 segundos completos de
   plazo de gracia, una parada limpia puede superar el `TimeoutStopSec` de 20
   segundos del servicio; systemd mata entonces todo el grupo de procesos.

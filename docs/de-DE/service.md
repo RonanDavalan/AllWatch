@@ -41,7 +41,7 @@ allwatch --version
 ## Pfade und Dateien
 
 - `/etc/allwatch/allwatch.conf` ist eine Conffile von root und für den Dienstbenutzer nicht beschreibbar. Sie ist die Vertrauensgrenze: Zielbefehle laufen mit den Rechten des Dienstbenutzers.
-- `/var/lib/allwatch` enthält Zustand und Protokoll, Modus `0700`, Eigentümer `allwatch:allwatch`, von systemd angelegt. Das flache Protokoll ist `/var/lib/allwatch/allwatch/allwatch.log`.
+- `/var/lib/allwatch` enthält Zustand und Protokoll, Modus `0700`, Eigentümer `allwatch:allwatch`, von systemd angelegt. Das einfache Textprotokoll ist `/var/lib/allwatch/allwatch/allwatch.log`.
 - `/run/allwatch` ist das Laufzeitverzeichnis, Modus `0700`, bei jedem Dienststart angelegt und beim Stoppen entfernt. Es enthält `<id>.pid`, `<id>.fails` und `<id>.stop`.
 - `/var/lib/allwatch` und `/run/allwatch` überleben keine Purge; `/run/allwatch` überlebt keinen Stopp.
 

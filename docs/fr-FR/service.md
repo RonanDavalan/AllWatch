@@ -104,7 +104,7 @@ sudo -u allwatch env ALLWATCH_RUNTIME=/run/allwatch \
   allwatch --diagnose /etc/allwatch/allwatch.conf
 ```
 
-Il affiche la version, le chemin de la configuration, le chemin d'exécution, le chemin du journal, la conduite sur gel et, pour chaque cible, son identifiant, son port et sa politique. Il rend `0` quand la configuration est lisible, qu'un répertoire d'exécution existant appartient à l'utilisateur courant et qu'un répertoire de journal existant est inscriptible. Il rend `1` pour une configuration illisible, un `ON_FREEZE` invalide, un `POLL_SECONDS` non numérique, un répertoire d'exécution existant qui n'appartient pas à l'utilisateur courant, ou un répertoire de journal existant qui n'est pas inscriptible. Il ne lance aucune cible et ne sonde aucun port.
+Il affiche la version, le chemin de la configuration, le chemin d'exécution, le chemin du journal, la conduite sur gel et, pour chaque cible, son identifiant, son port et sa politique. Il renvoie `0` quand la configuration est lisible, qu'un répertoire d'exécution existant appartient à l'utilisateur courant et qu'un répertoire de journal existant est inscriptible. Il renvoie `1` pour une configuration illisible, un `ON_FREEZE` invalide, un `POLL_SECONDS` non numérique, un répertoire d'exécution existant qui n'appartient pas à l'utilisateur courant, ou un répertoire de journal existant qui n'est pas inscriptible. Il ne lance aucune cible et ne sonde aucun port.
 
 ## Arrêter une cible sans arrêter le service
 

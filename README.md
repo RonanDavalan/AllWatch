@@ -177,7 +177,7 @@ fault.
 - **Exit codes.** A clean, requested stop exits with code `0`. Any failure
   exits with a non-zero code.
 - **A TCP port.** Each target owns one TCP port, open and accepting
-  connections as soon as it is initialised. A target that is alive but does
+  connections as soon as it is initialized. A target that is alive but does
   not accept a connection within the probe timeout is considered hung.
 - **`SIGTERM`.** The target catches `SIGTERM`, releases its resources and
   exits with code `0` within 5 seconds. After that, AllWatch sends `SIGKILL`.
@@ -193,7 +193,7 @@ in the health check.
 - No supervision of a target that daemonizes or double-forks.
 - `--diagnose` is static: it reads the configuration and the paths, it does
   not probe a target and it does not prove that a target is healthy.
-- `--version`, `--help` and `--diagnose` are recognised only as the first
+- `--version`, `--help` and `--diagnose` are recognized only as the first
   argument.
 - The command is not run through a shell: no quoting, pipes, redirections or
   variable expansion.

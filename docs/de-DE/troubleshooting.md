@@ -1,6 +1,6 @@
 # Fehlerbehebung
 
-AllWatch hat keinen Statusbefehl. Der Zustand eines Ziels wird aus dem Prozess, dem TCP-Port und dem flachen Protokoll gelesen. Dieses Kapitel nennt die genauen Befehle für die häufigen Störungen.
+AllWatch hat keinen Statusbefehl. Der Zustand eines Ziels wird aus dem Prozess, dem TCP-Port und dem einfachen Textprotokoll gelesen. Dieses Kapitel nennt die genauen Befehle für die häufigen Störungen.
 
 ## Zuerst den Dienstzustand lesen
 
@@ -34,7 +34,7 @@ Die Protokollzeilen sind `Datum id Ereignis`. Die Ereignisse sind `DEMARRAGE`, `
 - Das Ziel ist langsamer als `PROBE_TIMEOUT=3`; erhöhen Sie den Wert in der Konfiguration und starten Sie den Dienst neu.
 - Das Ziel lebt, aber sein Listener ist geschlossen; genau das ist der Blockierzustand. Mit `ON_FREEZE=restart` (Standard) sendet AllWatch `SIGTERM`, wartet 5 Sekunden, sendet `SIGKILL` und startet das Ziel neu. Mit `ON_FREEZE=alert` schreibt es einmal `ALERTE GEL` und lässt das Ziel laufen; `RETABLI` wird geschrieben, wenn der Port wieder antwortet.
 
-## `--diagnose` endet mit 0, aber das Ziel ist ungesund
+## `--diagnose` endet mit 0, aber das Ziel ist nicht betriebsbereit
 
 `--diagnose` ist statisch. Es liest die Konfiguration und die Pfade; es sondiert kein Ziel. Ein Rückgabecode `0` beweist nur, dass der Supervisor die Konfiguration lesen und seine Verzeichnisse nutzen kann.
 

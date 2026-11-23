@@ -1,4 +1,4 @@
-# Instalar y explotar el servicio Debian
+# Instalar y administrar el servicio Debian
 
 El paquete Debian instala AllWatch como servicio systemd. El servicio arranca al inicio, lee su configuración una sola vez y espera si no se declara ningún objetivo. Este capítulo da las rutas, los archivos y los comandos exactos del paquete.
 
@@ -41,7 +41,7 @@ allwatch --version
 ## Rutas y archivos
 
 - `/etc/allwatch/allwatch.conf` es un archivo de configuración (conffile) propiedad de root, no escribible por el usuario del servicio. Es la frontera de confianza: los comandos de los objetivos se ejecutan con los privilegios del usuario del servicio.
-- `/var/lib/allwatch` contiene el estado y el diario, modo `0700`, propietario `allwatch:allwatch`, creado por systemd. El diario plano es `/var/lib/allwatch/allwatch/allwatch.log`.
+- `/var/lib/allwatch` contiene el estado y el registro, modo `0700`, propietario `allwatch:allwatch`, creado por systemd. El registro plano es `/var/lib/allwatch/allwatch/allwatch.log`.
 - `/run/allwatch` es el directorio de ejecución, modo `0700`, creado en cada arranque del servicio y retirado al detenerlo. Contiene `<id>.pid`, `<id>.fails` y `<id>.stop`.
 - `/var/lib/allwatch` y `/run/allwatch` no sobreviven a una purga; `/run/allwatch` no sobrevive a una parada.
 
@@ -104,7 +104,7 @@ sudo -u allwatch env ALLWATCH_RUNTIME=/run/allwatch \
   allwatch --diagnose /etc/allwatch/allwatch.conf
 ```
 
-Muestra la versión, la ruta de configuración, la ruta de ejecución, la ruta del diario, la conducta ante un bloqueo y, para cada objetivo, su identificador, puerto y política. Devuelve `0` cuando la configuración es legible, un directorio de ejecución existente pertenece al usuario actual y un directorio de diario existente es escribible. Devuelve `1` por una configuración ilegible, un `ON_FREEZE` inválido, un `POLL_SECONDS` no numérico, un directorio de ejecución existente que no pertenece al usuario actual, o un directorio de diario existente que no es escribible. No inicia ningún objetivo ni sondea ningún puerto.
+Muestra la versión, la ruta de configuración, la ruta de ejecución, la ruta del registro, la conducta ante un bloqueo y, para cada objetivo, su identificador, puerto y política. Devuelve `0` cuando la configuración es legible, un directorio de ejecución existente pertenece al usuario actual y un directorio de registro existente es escribible. Devuelve `1` por una configuración ilegible, un `ON_FREEZE` inválido, un `POLL_SECONDS` no numérico, un directorio de ejecución existente que no pertenece al usuario actual, o un directorio de registro existente que no es escribible. No inicia ningún objetivo ni sondea ningún puerto.
 
 ## Detener un objetivo sin detener el servicio
 
@@ -146,7 +146,7 @@ Los comandos de los objetivos heredan esa identidad. El archivo de configuració
 sudo apt install ./allwatch_0.1.0-6_all.deb
 ```
 
-`/etc/allwatch/allwatch.conf` se conserva; si la versión del paquete lo modifica, dpkg pregunta qué versión mantener. El servicio se reinicia tras la actualización si estaba activo. `/var/lib/allwatch` y su diario permanecen.
+`/etc/allwatch/allwatch.conf` se conserva; si la versión del paquete lo modifica, dpkg pregunta qué versión mantener. El servicio se reinicia tras la actualización si estaba activo. `/var/lib/allwatch` y su registro permanecen.
 
 ## Retirar y purgar
 

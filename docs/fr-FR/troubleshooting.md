@@ -34,7 +34,7 @@ Les lignes du journal sont `date id événement`. Les événements sont `DEMARRA
 - La cible est plus lente que `PROBE_TIMEOUT=3` ; augmentez-le dans la configuration, puis redémarrez le service.
 - La cible est vivante mais son écoute est fermée ; c'est exactement l'état bloqué. Avec `ON_FREEZE=restart` (le défaut), AllWatch envoie `SIGTERM`, attend 5 secondes, puis `SIGKILL`, et la relance. Avec `ON_FREEZE=alert`, il journalise `ALERTE GEL` une fois et laisse la cible vivante ; `RETABLI` est journalisé quand le port répond de nouveau.
 
-## `--diagnose` rend 0 mais la cible est malsaine
+## `--diagnose` renvoie 0 mais la cible n'est pas saine
 
 `--diagnose` est statique. Il lit la configuration et les chemins ; il ne sonde aucune cible. Un code de retour `0` prouve seulement que le superviseur peut lire la configuration et utiliser ses répertoires.
 

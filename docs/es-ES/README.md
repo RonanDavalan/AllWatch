@@ -45,7 +45,7 @@ allwatch --diagnose /etc/allwatch/allwatch.conf
 ```
 
 `--diagnose` lee la configuración, el directorio de estado y la ruta del
-diario. No inicia ni sondea ningún objetivo: no demuestra que un objetivo esté
+registro. No inicia ni sondea ningún objetivo: no demuestra que un objetivo esté
 sano, demuestra que el supervisor puede leer su configuración y usar sus
 rutas.
 
@@ -141,7 +141,7 @@ Objetivos, uno por línea:
 id port policy command...
 ```
 
-- `id`: un nombre corto para los archivos de estado y el diario.
+- `id`: un nombre corto para los archivos de estado y el registro.
 - `port`: el puerto TCP del objetivo (sondeado en `127.0.0.1`).
 - `policy`: `always`, `on-failure` o `transient`.
 - `command...`: el resto de la línea, separado por espacios (sin comillas),
@@ -161,7 +161,7 @@ Si un objetivo alcanza `MAX_RESTARTS` reinicios dentro de
 `ALERTE VERROU_CRITIQUE` y sigue con los demás objetivos.
 
 El directorio de estado es `/tmp/allwatch-runtime` (se puede cambiar con
-`ALLWATCH_RUNTIME`); el diario es un archivo plano, una línea por evento
+`ALLWATCH_RUNTIME`); el registro es un archivo plano, una línea por evento
 (`date id event`), en
 `${XDG_STATE_HOME:-$HOME/.local/state}/allwatch/allwatch.log`.
 
@@ -188,7 +188,7 @@ no intervienen en la comprobación de salud.
 - Sin recarga en caliente de la configuración: `sudo systemctl restart
   allwatch`.
 - Sin comprobación por títulos de ventana, X11 o Wayland.
-- Sin análisis de diarios de aplicación para decidir un reinicio.
+- Sin análisis de registros de aplicación para decidir un reinicio.
 - Sin supervisión de objetivos que se separan del primer plano.
 - `--diagnose` es estático: lee la configuración y las rutas, no sondea ningún
   objetivo y no demuestra que un objetivo esté sano.
@@ -197,7 +197,7 @@ no intervienen en la comprobación de salud.
 - El comando no se ejecuta por un shell: sin comillas, tuberías, redirecciones
   ni expansión de variables.
 - Los valores de configuración y los nombres de política no se validan.
-- El diario plano no se rota.
+- El registro plano no se rota.
 
 ## Licencia
 

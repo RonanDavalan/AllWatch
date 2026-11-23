@@ -1,6 +1,6 @@
 # Solución de problemas
 
-AllWatch no tiene comando de estado. El estado de un objetivo se lee en el proceso, el puerto TCP y el diario plano. Este capítulo da los comandos exactos de los fallos habituales.
+AllWatch no tiene comando de estado. El estado de un objetivo se lee en el proceso, el puerto TCP y el registro plano. Este capítulo da los comandos exactos de los fallos habituales.
 
 ## Leer primero el estado del servicio
 
@@ -10,7 +10,7 @@ sudo journalctl -u allwatch -n 50 --no-pager
 sudo tail -n 50 /var/lib/allwatch/allwatch/allwatch.log
 ```
 
-Las líneas del diario son `fecha id evento`. Los eventos son `DEMARRAGE`, `DEMARRE`, `ADOPTE`, `PLANTE`, `ALERTE GEL`, `RETABLI`, `NEUTRALISE SIGTERM`, `NEUTRALISE SIGKILL`, `CRASHE code=N`, `RELANCE`, `ALERTE VERROU_CRITIQUE`, `QUITTE` y `ARRET`.
+Las líneas del registro son `fecha id evento`. Los eventos son `DEMARRAGE`, `DEMARRE`, `ADOPTE`, `PLANTE`, `ALERTE GEL`, `RETABLI`, `NEUTRALISE SIGTERM`, `NEUTRALISE SIGKILL`, `CRASHE code=N`, `RELANCE`, `ALERTE VERROU_CRITIQUE`, `QUITTE` y `ARRET`.
 
 ## El servicio no arranca
 
@@ -25,7 +25,7 @@ Las líneas del diario son `fecha id evento`. Los eventos son `DEMARRAGE`, `DEMA
 - Política `transient`: nunca se reinicia.
 - Archivo de parada presente: `ls -l /run/allwatch/demo.stop`; retírelo si la parada no era intencionada. El archivo no detiene por sí solo un objetivo en ejecución.
 - `ALERTE VERROU_CRITIQUE`: el objetivo alcanzó `MAX_RESTARTS` en `RESTART_WINDOW`. Corrija la causa y reinicie el servicio; el bloqueo dura hasta el reinicio del supervisor.
-- `CRASHE code=N`: el objetivo terminó con el código N. Lea su propio diario; AllWatch solo informa del código.
+- `CRASHE code=N`: el objetivo terminó con el código N. Lea su propio registro; AllWatch solo informa del código.
 
 ## El objetivo se declara bloqueado aunque esté en marcha
 
@@ -45,9 +45,9 @@ Las líneas del diario son `fecha id evento`. Los eventos son `DEMARRAGE`, `DEMA
 - El puerto ya está ocupado: `ss -ltnp | grep 9001`.
 - El usuario del servicio no puede ejecutar el archivo: `sudo -u allwatch test -x /usr/share/doc/allwatch/examples/dummy-target.sh`.
 
-## El diario crece sin límite
+## El registro crece sin límite
 
-AllWatch no rota el diario. Use logrotate o un temporizador systemd; el archivo es `/var/lib/allwatch/allwatch/allwatch.log`.
+AllWatch no rota el registro. Use logrotate o un temporizador systemd; el archivo es `/var/lib/allwatch/allwatch/allwatch.log`.
 
 ## Objetivos duplicados tras un reinicio del supervisor
 
@@ -64,6 +64,6 @@ RuntimeDirectoryPreserve=restart
 
 Luego reinicie. El directorio de ejecución se conserva entre reinicios del servicio y el nuevo supervisor puede adoptar el PID superviviente.
 
-## Nada en el diario
+## Nada en el registro
 
-El servicio se ejecuta como `allwatch` y escribe en `/var/lib/allwatch/allwatch/allwatch.log`; compruebe el entorno del servicio con `sudo systemctl show allwatch -p Environment`. Si el directorio no es escribible, el diario queda vacío; `--diagnose` lo indica.
+El servicio se ejecuta como `allwatch` y escribe en `/var/lib/allwatch/allwatch/allwatch.log`; compruebe el entorno del servicio con `sudo systemctl show allwatch -p Environment`. Si el directorio no es escribible, el registro queda vacío; `--diagnose` lo indica.

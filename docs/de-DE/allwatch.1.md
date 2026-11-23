@@ -20,7 +20,7 @@ allwatch - kleiner Prozess-Supervisor für Linux
 
 **allwatch** ist ein kleiner Prozess-Supervisor, geschrieben in Bash. Er
 startet jedes konfigurierte Ziel als Kindprozess, merkt sich die vom Kernel
-vergebene PID und beurteilt die Gesundheit des Ziels nur anhand von drei
+vergebene PID und beurteilt den Zustand des Ziels nur anhand von drei
 Quellen: der Prozess existiert in `/proc`, sein TCP-Port nimmt eine Verbindung
 an, und der Exit-Code, den er bei seinem Ende zurückgegeben hat. Das Ziel muss
 im Vordergrund bleiben; ein Ziel, das sich im Hintergrund ablöst, bricht die
@@ -143,7 +143,7 @@ neu. Die Datei stoppt ein laufendes Ziel nicht von selbst.
 
 Der Supervisor unterscheidet vier gewöhnliche Zustände und einen
 Ausnahmezustand der Sperre. Es gibt keinen Statusbefehl: Ein Zustand ist über
-den Prozess, den Port und das flache Journal sichtbar.
+den Prozess, den Port und das einfache Textjournal sichtbar.
 
 **Läuft**
 :   Der Prozess existiert und sein Port nimmt eine Verbindung an.
@@ -191,7 +191,7 @@ den Prozess, den Port und das flache Journal sichtbar.
     `ALLWATCH_RUNTIME` ändern.
 
 `$XDG_STATE_HOME/allwatch/allwatch.log`, `$HOME/.local/state/allwatch/allwatch.log`
-:   Flaches Ereignisjournal, eine Zeile pro Ereignis (`Datum id Ereignis`).
+:   Ereignisprotokoll als einfache Textdatei, eine Zeile pro Ereignis (`Datum id Ereignis`).
     Das Verzeichnis wird bei Bedarf angelegt. AllWatch rotiert das Journal
     nicht.
 
@@ -381,14 +381,14 @@ Dienstbenutzer anlegen:
   Supervisor kann lebende Ziele übernehmen; beim Dienst entfernt systemd
   `/run/allwatch` beim Stopp, sodass der nächste Supervisor sie nicht
   übernimmt und Doppelstarts verursachen kann.
-- Das flache Journal wird nicht rotiert.
+- Das einfache Textjournal wird nicht rotiert.
 - Bei vier oder mehr Zielen, die jeweils die vollen 5 Sekunden Gnadenfrist
   nutzen, kann ein sauberes Stoppen das `TimeoutStopSec` von 20 Sekunden des
   Dienstes überschreiten; systemd beendet dann die ganze Prozessgruppe.
 - `--help` gibt die Übersicht aus und endet mit Exit-Code `0`; die Optionen
   werden nur als erstes Argument erkannt.
 - `--diagnose` prüft Konfiguration und Pfade; es startet und prüft kein Ziel,
-  beweist also nicht, dass ein Ziel gesund ist.
+  beweist also nicht, dass ein Ziel funktionsfähig ist.
 - Die Konfiguration ist vertrauenswürdige Eingabe: Die Befehle der Ziele
   laufen mit den Rechten des Dienstbenutzers. `/etc/allwatch/allwatch.conf`
   gegen nicht-root-Schreibzugriff schützen. AllWatch isoliert die Ziele nicht

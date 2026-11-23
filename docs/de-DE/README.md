@@ -10,7 +10,7 @@
 
 AllWatch ist ein winziger Prozess-Supervisor für Linux, geschrieben in einem
 einzigen Bash-Skript (etwa hundertfünfzig nutzbare Zeilen). Er startet jedes Ziel im
-Vordergrund, merkt sich dessen PID und beurteilt seine Gesundheit nur anhand
+Vordergrund, merkt sich dessen PID und beurteilt seinen Zustand nur anhand
 von Kernel und Netzwerk: Existiert der Prozess noch in `/proc`, nimmt sein
 TCP-Port noch Verbindungen an, und welchen Exit-Code hat er hinterlassen? Er
 startet das Ziel gemäß einer Richtlinie pro Ziel neu und gerät nicht in eine
@@ -49,7 +49,7 @@ allwatch --diagnose /etc/allwatch/allwatch.conf
 
 `--diagnose` liest die Konfiguration, das Zustandsverzeichnis und den
 Journalpfad. Es startet und prüft kein Ziel; es beweist nicht, dass ein Ziel
-gesund ist, sondern dass der Supervisor seine Konfiguration lesen und seine
+funktionsfähig ist, sondern dass der Supervisor seine Konfiguration lesen und seine
 Pfade nutzen kann.
 
 Zum Entfernen:
@@ -130,7 +130,7 @@ prüft er jedes Ziel und ordnet es einem von vier Zuständen zu:
 ## Konfiguration
 
 Die Konfiguration wird beim Start einmal zeilenweise gelesen. Leere Zeilen
-und Zeilen, die mit `#` beginnen, werden ignoriert. Motorenparameter, ein
+und Zeilen, die mit `#` beginnen, werden ignoriert. Allgemeine Parameter, ein
 `KEY=value` pro Zeile:
 
 - `POLL_SECONDS=5`: Sekunden zwischen zwei Prüfungen.
@@ -164,7 +164,7 @@ Braucht ein Ziel `MAX_RESTARTS` Neustarts innerhalb von
 `ALERTE VERROU_CRITIQUE` und führt die anderen Ziele weiter.
 
 Das Zustandsverzeichnis ist `/tmp/allwatch-runtime` (überschreibbar mit
-`ALLWATCH_RUNTIME`); das Journal ist eine flache Datei, eine Zeile pro
+`ALLWATCH_RUNTIME`); das Journal ist eine einfache Textdatei, eine Zeile pro
 Ereignis (`date id event`), unter
 `${XDG_STATE_HOME:-$HOME/.local/state}/allwatch/allwatch.log`.
 
@@ -185,7 +185,7 @@ Fehler.
   `SIGKILL`.
 
 Fenstertitel, Anzeigeserver und die eigene Ausgabe des Ziels spielen für die
-Gesundheitsprüfung keine Rolle.
+Zustandsprüfung keine Rolle.
 
 ## Grenzen
 
@@ -194,13 +194,13 @@ Gesundheitsprüfung keine Rolle.
 - Keine Analyse von Anwendungsjournalen für Neustartentscheidungen.
 - Keine Überwachung von Zielen, die sich im Hintergrund ablösen.
 - `--diagnose` ist statisch: Es liest Konfiguration und Pfade, prüft kein
-  Ziel und beweist nicht, dass ein Ziel gesund ist.
+  Ziel und beweist nicht, dass ein Ziel funktionsfähig ist.
 - `--version`, `--help` und `--diagnose` werden nur als erstes Argument
   erkannt.
 - Der Befehl läuft nicht durch eine Shell: keine Anführungszeichen, Pipes,
   Umleitungen oder Variablenexpansion.
 - Konfigurationswerte und Richtliniennamen werden nicht validiert.
-- Das flache Journal wird nicht rotiert.
+- Das einfache Textjournal wird nicht rotiert.
 
 ## Lizenz
 

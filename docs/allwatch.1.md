@@ -145,7 +145,7 @@ process, the port and the flat log.
 **Hung**
 :   The process exists but its port does not answer. AllWatch marks the
     target suspect at the first failed probe and waits `2 * POLL_SECONDS`
-    seconds. If the port is still closed, the behaviour depends on
+    seconds. If the port is still closed, the behavior depends on
     `ON_FREEZE`: `restart` sends `SIGTERM`, waits about 5 seconds for the
     target to stop, sends `SIGKILL` if needed, and treats the target as
     failed; `alert` sends no signal, logs `ALERTE GEL` once, keeps the target
