@@ -1,8 +1,8 @@
 # AllWatch
 
-[![Version](https://img.shields.io/badge/version-0.1.0-115E67)](https://allwatch.davalan.fr/en/download/)
+[![Version](https://img.shields.io/badge/version-0.1.0-115E67)](https://allwatch.davalan.fr/download/)
 [![License](https://img.shields.io/badge/license-MIT-115E67)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Debian%20%7C%20Ubuntu-DCA134)](https://allwatch.davalan.fr/en/download/)
+[![Platform](https://img.shields.io/badge/platform-Debian%20%7C%20Ubuntu-DCA134)](https://allwatch.davalan.fr/download/)
 
 [English](README.md) | [Français](docs/fr-FR/README.md) | [Deutsch](docs/de-DE/README.md) | [Español](docs/es-ES/README.md)
 
@@ -24,7 +24,7 @@ it anything and does not need to know it exists.
 The Debian package installs the supervisor as `/usr/bin/allwatch`, the
 `allwatch.service` systemd unit, the example configuration and the manual page
 in four languages. Download the package and `SHA256SUMS` from the
-[download page](https://allwatch.davalan.fr/en/download/), then run:
+[download page](https://allwatch.davalan.fr/download/), then run:
 
 ```bash
 sudo apt install ./allwatch_0.1.0-4_all.deb
