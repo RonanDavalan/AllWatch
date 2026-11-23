@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-0.1.0-115E67)](https://allwatch.davalan.fr/fr/telechargement/)
 [![Licence](https://img.shields.io/badge/licence-MIT-115E67)](../../LICENSE)
-[![Plateforme](https://img.shields.io/badge/plateforme-Debian%20%7C%20Ubuntu-DCA134)](https://allwatch.davalan.fr/fr/telechargement/)
+[![Plateforme](https://img.shields.io/badge/plateforme-Debian%20%7C%20Ubuntu%20%7C%20Fedora%20%7C%20openSUSE%20%7C%20Arch-DCA134)](https://allwatch.davalan.fr/fr/telechargement/)
 
 [English](../../README.md) | [Français](README.md) | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md) | [中文](../zh-CN/README.md)
 
@@ -61,7 +61,7 @@ la configuration et l'état du service.
 
 ## Installer sur Fedora, openSUSE Leap et Arch Linux
 
-Le même tag construit aussi des paquets natifs : un `.rpm` pour Fedora, un `.rpm` pour openSUSE Leap et un `.pkg.tar.zst` pour Arch Linux. Téléchargez le fichier de votre famille et `SHA256SUMS` depuis la [page de téléchargement](https://allwatch.davalan.fr/fr/download/), puis lancez la ligne de votre famille (Fedora, openSUSE Leap, Arch Linux, dans cet ordre) :
+Le même tag construit aussi des paquets natifs : un `.rpm` pour Fedora, un `.rpm` pour openSUSE Leap et un `.pkg.tar.zst` pour Arch Linux. Téléchargez le fichier de votre famille et `SHA256SUMS` depuis la [page de téléchargement](https://allwatch.davalan.fr/fr/telechargement/), puis lancez la ligne de votre famille (Fedora, openSUSE Leap, Arch Linux, dans cet ordre) :
 
 ```bash
 sudo dnf install ./allwatch-0.1.0-1.fc44.noarch.rpm

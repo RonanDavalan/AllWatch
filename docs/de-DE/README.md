@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-0.1.0-115E67)](https://allwatch.davalan.fr/de/download/)
 [![Lizenz](https://img.shields.io/badge/lizenz-MIT-115E67)](../../LICENSE)
-[![Plattform](https://img.shields.io/badge/plattform-Debian%20%7C%20Ubuntu-DCA134)](https://allwatch.davalan.fr/de/download/)
+[![Plattform](https://img.shields.io/badge/plattform-Debian%20%7C%20Ubuntu%20%7C%20Fedora%20%7C%20openSUSE%20%7C%20Arch-DCA134)](https://allwatch.davalan.fr/de/download/)
 
 [English](../../README.md) | [Français](../fr-FR/README.md) | [Deutsch](README.md) | [Español](../es-ES/README.md) | [中文](../zh-CN/README.md)
 
