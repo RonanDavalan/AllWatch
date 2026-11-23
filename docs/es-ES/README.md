@@ -1,12 +1,12 @@
 # AllWatch
 
 [![Versión](https://img.shields.io/badge/versi%C3%B3n-0.1.0-115E67)](https://allwatch.davalan.fr/es/descarga/)
-[![Licencia](https://img.shields.io/badge/licencia-MIT-115E67)](LICENSE)
+[![Licencia](https://img.shields.io/badge/licencia-MIT-115E67)](../../LICENSE)
 [![Plataforma](https://img.shields.io/badge/plataforma-Debian%20%7C%20Ubuntu-DCA134)](https://allwatch.davalan.fr/es/descarga/)
 
-[English](README.md) | [Français](docs/fr-FR/README.md) | [Deutsch](docs/de-DE/README.md) | [Español](docs/es-ES/README.md)
+[English](../../README.md) | [Français](../fr-FR/README.md) | [Deutsch](../de-DE/README.md) | [Español](README.md) | [中文](../zh-CN/README.md)
 
-![Ayuda de AllWatch](docs/images/allwatch-help.png)
+![Ayuda de AllWatch](../images/allwatch-help.png)
 
 AllWatch es un supervisor de procesos minúsculo para Linux, escrito en un
 solo script Bash (unas ciento cincuenta líneas útiles de código). Inicia cada objetivo en primer
@@ -23,7 +23,7 @@ y no necesita saber que existe.
 
 El paquete Debian instala el supervisor como `/usr/bin/allwatch`, la unidad
 systemd `allwatch.service`, la configuración de ejemplo y la página de manual
-en cuatro idiomas. Descargue el paquete y `SHA256SUMS` desde la [página de
+en cinco idiomas. Descargue el paquete y `SHA256SUMS` desde la [página de
 descarga](https://allwatch.davalan.fr/es/descarga/) y ejecute:
 
 ```bash
@@ -156,7 +156,7 @@ Políticas:
   tras un código de salida 0.
 - `transient`: no reiniciarlo nunca.
 
-Si un objetivo necesita más de `MAX_RESTARTS` reinicios dentro de
+Si un objetivo alcanza `MAX_RESTARTS` reinicios dentro de
 `RESTART_WINDOW` segundos, AllWatch deja de reiniciarlo, registra
 `ALERTE VERROU_CRITIQUE` y sigue con los demás objetivos.
 

@@ -13,6 +13,7 @@ Das Debian-Paket installiert AllWatch als systemd-Dienst. Der Dienst startet bei
 /usr/share/man/fr/man1/allwatch.1.gz       Handbuchseite, Französisch
 /usr/share/man/de/man1/allwatch.1.gz       Handbuchseite, Deutsch
 /usr/share/man/es/man1/allwatch.1.gz       Handbuchseite, Spanisch
+/usr/share/man/zh_CN/man1/allwatch.1.gz    Handbuchseite, vereinfachtes Chinesisch
 /usr/share/doc/allwatch/README.Debian      Pakethinweise
 /usr/share/doc/allwatch/examples/allwatch.conf.example
 /usr/share/doc/allwatch/examples/dummy-target.sh

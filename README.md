@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-MIT-115E67)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Debian%20%7C%20Ubuntu-DCA134)](https://allwatch.davalan.fr/download/)
 
-[English](README.md) | [Français](docs/fr-FR/README.md) | [Deutsch](docs/de-DE/README.md) | [Español](docs/es-ES/README.md)
+[English](README.md) | [Français](docs/fr-FR/README.md) | [Deutsch](docs/de-DE/README.md) | [Español](docs/es-ES/README.md) | [中文](docs/zh-CN/README.md)
 
 ![AllWatch help output](docs/images/allwatch-help.png)
 
@@ -23,7 +23,7 @@ it anything and does not need to know it exists.
 
 The Debian package installs the supervisor as `/usr/bin/allwatch`, the
 `allwatch.service` systemd unit, the example configuration and the manual page
-in four languages. Download the package and `SHA256SUMS` from the
+in five languages. Download the package and `SHA256SUMS` from the
 [download page](https://allwatch.davalan.fr/download/), then run:
 
 ```bash
@@ -157,7 +157,7 @@ Policies:
   an exit code 0.
 - `transient`: never restart it.
 
-If a target needs more than `MAX_RESTARTS` restarts within `RESTART_WINDOW`
+If a target reaches `MAX_RESTARTS` restarts within `RESTART_WINDOW`
 seconds, AllWatch stops restarting it, logs `ALERTE VERROU_CRITIQUE` and
 carries on with the other targets.
 

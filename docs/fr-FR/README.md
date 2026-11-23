@@ -1,12 +1,12 @@
 # AllWatch
 
 [![Version](https://img.shields.io/badge/version-0.1.0-115E67)](https://allwatch.davalan.fr/fr/telechargement/)
-[![Licence](https://img.shields.io/badge/licence-MIT-115E67)](LICENSE)
+[![Licence](https://img.shields.io/badge/licence-MIT-115E67)](../../LICENSE)
 [![Plateforme](https://img.shields.io/badge/plateforme-Debian%20%7C%20Ubuntu-DCA134)](https://allwatch.davalan.fr/fr/telechargement/)
 
-[English](README.md) | [Français](docs/fr-FR/README.md) | [Deutsch](docs/de-DE/README.md) | [Español](docs/es-ES/README.md)
+[English](../../README.md) | [Français](README.md) | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md) | [中文](../zh-CN/README.md)
 
-![Aide d'AllWatch](docs/images/allwatch-help.png)
+![Aide d'AllWatch](../images/allwatch-help.png)
 
 AllWatch est un superviseur de processus minimaliste pour Linux, écrit dans un simple script Bash (environ cent cinquante lignes utiles de code). Il lance chaque processus au premier plan, mémorise son PID et évalue son état uniquement à partir des informations fournies par le noyau et le réseau : le processus est-il toujours dans `/proc`, son port TCP accepte-t-il toujours une connexion et quel code de sortie a-t-il renvoyé ? Il redémarre le processus selon une politique définie pour chaque cible et refuse de boucler indéfiniment sur un processus qui s'arrête brutalement.
 
@@ -30,7 +30,7 @@ AllWatch est le parent, la cible est l'enfant. Toutes les quelques secondes, il 
 
 Le paquet Debian installe le superviseur sous `/usr/bin/allwatch`, l'unité
 systemd `allwatch.service`, la configuration d'exemple et la page de manuel en
-quatre langues. Téléchargez le paquet et `SHA256SUMS` depuis la [page de
+cinq langues. Téléchargez le paquet et `SHA256SUMS` depuis la [page de
 téléchargement](https://allwatch.davalan.fr/fr/telechargement/), puis lancez :
 
 ```bash
@@ -142,7 +142,7 @@ Politiques :
 - `on-failure` : redémarrer après un plantage ou un blocage, mais laisser arrêté après un code de sortie 0.
 - `transient` : ne jamais le redémarrer.
 
-Si une cible a besoin de plus de `MAX_RESTARTS` redémarrages dans les `RESTART_WINDOW` secondes, AllWatch cesse de la redémarrer, enregistre `ALERTE VERROU_CRITIQUE` et continue avec les autres cibles.
+Si une cible atteint `MAX_RESTARTS` redémarrages dans les `RESTART_WINDOW` secondes, AllWatch cesse de la redémarrer, enregistre `ALERTE VERROU_CRITIQUE` et continue avec les autres cibles.
 
 Utilisation : `./allwatch.sh [fichier.conf]` (par défaut : `allwatch.conf`). Le répertoire d'état est `/tmp/allwatch-runtime` (à remplacer par `ALLWATCH_RUNTIME`). Le journal est un fichier plat, une ligne par événement (`date id event`), situé dans `${XDG_STATE_HOME:-$HOME/.local/state}/allwatch/allwatch.log`.
 
