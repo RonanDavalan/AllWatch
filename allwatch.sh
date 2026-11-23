@@ -85,6 +85,7 @@ if [ "$MODE" = diagnose ]; then
 fi
 
 # Un répertoire d'état qui n'est pas à nous laisserait un tiers dicter les PID que nous tuons.
+# shellcheck disable=SC2174 # -m vise les deux dossiers nommés ; leurs parents gardent le masque par défaut.
 mkdir -p -m 700 "$RT" "${LOG%/*}"
 [ -O "$RT" ] || { echo "allwatch: $RT n'appartient pas à l'utilisateur" >&2; exit 1; }
 
@@ -99,6 +100,7 @@ existe() {
   [[ "${a[*]}" == *"${CMD[$1]}" ]]
 }
 
+# shellcheck disable=SC2016 # les apostrophes sont voulues : $0 se développe dans le bash enfant, qui reçoit le port.
 sonde() { timeout "$PROBE_TIMEOUT" bash -c ': > /dev/tcp/127.0.0.1/"$0"' "$1" 2>/dev/null; }
 
 # SIGTERM, 5 secondes de grâce (contrat cible §3), puis SIGKILL.
