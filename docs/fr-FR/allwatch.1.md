@@ -238,6 +238,8 @@ Commandes utiles :
     systemctl disable allwatch
     journalctl -u allwatch -f
 
+Les paquets `.rpm` de Fedora et d'openSUSE Leap et le paquet d'Arch Linux installent la même unité de service, la même configuration et le même programme aux mêmes chemins. Ils ne démarrent pas le service : lancez `systemctl enable --now allwatch` une fois les cibles déclarées.
+
 # SIGNAUX
 
 **SIGTERM**, **SIGINT**

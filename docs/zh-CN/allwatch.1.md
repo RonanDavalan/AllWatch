@@ -192,6 +192,8 @@ Debian 软件包安装 `allwatch.service`，它以系统用户 `allwatch` 和
     systemctl disable allwatch
     journalctl -u allwatch -f
 
+Fedora 和 openSUSE Leap 的 `.rpm` 软件包以及 Arch Linux 的软件包会把相同的服务单元、配置和程序安装到相同的路径。它们不会启动服务：请在声明好目标后运行 `systemctl enable --now allwatch`。
+
 # SIGNAUX
 
 **SIGTERM**, **SIGINT**
