@@ -15,8 +15,9 @@ Debian 软件包把 AllWatch 安装为 systemd 服务。服务在开机时启动
 /usr/share/man/de/man1/allwatch.1.gz       手册页，德语
 /usr/share/man/es/man1/allwatch.1.gz       手册页，西班牙语
 /usr/share/man/zh_CN/man1/allwatch.1.gz    手册页，简体中文
-/usr/share/doc/allwatch/README.Debian      软件包说明
+/usr/share/doc/allwatch/README.Debian.gz   软件包说明
 /usr/share/doc/allwatch/examples/allwatch.conf.example
+/usr/share/doc/allwatch/examples/allwatch.conf  源代码仓库的配置文件
 /usr/share/doc/allwatch/examples/dummy-target.sh
 ```
 
