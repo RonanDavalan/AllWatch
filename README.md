@@ -9,7 +9,7 @@
 ![AllWatch help output](docs/images/allwatch-help.png)
 
 AllWatch is a tiny process supervisor for Linux, written in a single Bash
-script (about one hundred lines of code). It starts each target in the
+script (about one hundred and fifty useful lines of code). It starts each target in the
 foreground, remembers its PID, and judges its health only from what the kernel
 and the network say: is the process still in `/proc`, does its TCP port still
 accept a connection, and what exit code did it leave. It restarts the target

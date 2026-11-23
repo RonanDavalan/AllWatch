@@ -8,7 +8,7 @@
 
 ![Aide d'AllWatch](docs/images/allwatch-help.png)
 
-AllWatch est un superviseur de processus minimaliste pour Linux, écrit dans un simple script Bash (une centaine de lignes de code). Il lance chaque processus au premier plan, mémorise son PID et évalue son état uniquement à partir des informations fournies par le noyau et le réseau : le processus est-il toujours dans `/proc`, son port TCP accepte-t-il toujours une connexion et quel code de sortie a-t-il renvoyé ? Il redémarre le processus selon une politique définie pour chaque cible et refuse de boucler indéfiniment sur un processus qui s'arrête brutalement.
+AllWatch est un superviseur de processus minimaliste pour Linux, écrit dans un simple script Bash (environ cent cinquante lignes utiles de code). Il lance chaque processus au premier plan, mémorise son PID et évalue son état uniquement à partir des informations fournies par le noyau et le réseau : le processus est-il toujours dans `/proc`, son port TCP accepte-t-il toujours une connexion et quel code de sortie a-t-il renvoyé ? Il redémarre le processus selon une politique définie pour chaque cible et refuse de boucler indéfiniment sur un processus qui s'arrête brutalement.
 
 La cible est une boîte noire. Elle ne s'enregistre pas auprès d'AllWatch, ne lui envoie rien et n'a pas besoin de savoir qu'elle existe.
 

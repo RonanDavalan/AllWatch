@@ -9,7 +9,7 @@
 ![Ayuda de AllWatch](docs/images/allwatch-help.png)
 
 AllWatch es un supervisor de procesos minúsculo para Linux, escrito en un
-solo script Bash (unas cien líneas de código). Inicia cada objetivo en primer
+solo script Bash (unas ciento cincuenta líneas útiles de código). Inicia cada objetivo en primer
 plano, recuerda su PID y juzga su salud solo con lo que dicen el núcleo y la
 red: ¿el proceso sigue en `/proc`, su puerto TCP sigue aceptando una conexión
 y qué código de salida dejó? Reinicia el objetivo según una política por
