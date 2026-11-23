@@ -24,7 +24,7 @@ The package creates the system user and group `allwatch` (home `/var/lib/allwatc
 ## Install
 
 ```bash
-sudo apt install ./allwatch_0.1.0-4_all.deb
+sudo apt install ./allwatch_0.1.0-6_all.deb
 ```
 
 The package installs the program and the unit. When systemd is running, it
@@ -38,7 +38,7 @@ dpkg -s allwatch | grep -E '^(Status|Version):'
 allwatch --version
 ```
 
-`allwatch --version` prints `allwatch 0.1.0`; the package version is `0.1.0-4`.
+`allwatch --version` prints `allwatch 0.1.0`; the package version is `0.1.0-6`.
 
 ## Paths and files
 
@@ -146,7 +146,7 @@ The target commands inherit that identity. The configuration file remains root-o
 ## Upgrade
 
 ```bash
-sudo apt install ./allwatch_0.1.0-4_all.deb
+sudo apt install ./allwatch_0.1.0-6_all.deb
 ```
 
 `/etc/allwatch/allwatch.conf` is preserved; if the packaged version changes, dpkg asks which version to keep. The service is restarted after the upgrade if it was active. `/var/lib/allwatch` and its log remain.

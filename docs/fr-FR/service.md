@@ -24,7 +24,7 @@ Le paquet crée l'utilisateur et le groupe système `allwatch` (domicile `/var/l
 ## Installer
 
 ```bash
-sudo apt install ./allwatch_0.1.0-4_all.deb
+sudo apt install ./allwatch_0.1.0-6_all.deb
 ```
 
 Le paquet installe le programme et l'unité. Quand systemd tourne, il active et démarre `allwatch.service`. La configuration livrée ne contient aucune cible active : le service démarre et attend.
@@ -36,7 +36,7 @@ dpkg -s allwatch | grep -E '^(Status|Version):'
 allwatch --version
 ```
 
-`allwatch --version` affiche `allwatch 0.1.0` ; la version du paquet est `0.1.0-4`.
+`allwatch --version` affiche `allwatch 0.1.0` ; la version du paquet est `0.1.0-6`.
 
 ## Chemins et fichiers
 
@@ -143,7 +143,7 @@ Les commandes des cibles héritent de cette identité. Le fichier de configurati
 ## Mettre à jour
 
 ```bash
-sudo apt install ./allwatch_0.1.0-4_all.deb
+sudo apt install ./allwatch_0.1.0-6_all.deb
 ```
 
 `/etc/allwatch/allwatch.conf` est conservé ; si la version du paquet le modifie, dpkg demande quelle version garder. Le service est redémarré après la mise à jour s'il était actif. `/var/lib/allwatch` et son journal restent.

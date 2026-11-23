@@ -24,7 +24,7 @@ Das Paket legt den Systembenutzer und die Gruppe `allwatch` an (Home `/var/lib/a
 ## Installieren
 
 ```bash
-sudo apt install ./allwatch_0.1.0-4_all.deb
+sudo apt install ./allwatch_0.1.0-6_all.deb
 ```
 
 Das Paket installiert das Programm und die Unit. Wenn systemd läuft, aktiviert es `allwatch.service` und startet den Dienst. Die ausgelieferte Konfiguration enthält kein aktives Ziel: Der Dienst startet und wartet.
@@ -36,7 +36,7 @@ dpkg -s allwatch | grep -E '^(Status|Version):'
 allwatch --version
 ```
 
-`allwatch --version` gibt `allwatch 0.1.0` aus; die Paketversion ist `0.1.0-4`.
+`allwatch --version` gibt `allwatch 0.1.0` aus; die Paketversion ist `0.1.0-6`.
 
 ## Pfade und Dateien
 
@@ -143,7 +143,7 @@ Die Zielbefehle erben diese Identität. Die Konfigurationsdatei bleibt Eigentum 
 ## Aktualisieren
 
 ```bash
-sudo apt install ./allwatch_0.1.0-4_all.deb
+sudo apt install ./allwatch_0.1.0-6_all.deb
 ```
 
 `/etc/allwatch/allwatch.conf` bleibt erhalten; wenn die Paketversion sie ändert, fragt dpkg, welche Version behalten werden soll. Der Dienst wird nach der Aktualisierung neu gestartet, wenn er aktiv war. `/var/lib/allwatch` und sein Protokoll bleiben.

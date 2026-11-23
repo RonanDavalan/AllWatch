@@ -22,7 +22,7 @@ systemd 单元、示例配置和五种语言的手册页。请从[下载页面](
 取得软件包和 `SHA256SUMS`，然后运行：
 
 ```bash
-sudo apt install ./allwatch_0.1.0-4_all.deb
+sudo apt install ./allwatch_0.1.0-6_all.deb
 ```
 
 公布的验证级别：**安装与诊断已在容器中验证**，覆盖 Debian 12 和 13，以及 Ubuntu 22.04 和 24.04。

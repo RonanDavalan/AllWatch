@@ -27,7 +27,7 @@ in five languages. Download the package and `SHA256SUMS` from the
 [download page](https://allwatch.davalan.fr/download/), then run:
 
 ```bash
-sudo apt install ./allwatch_0.1.0-4_all.deb
+sudo apt install ./allwatch_0.1.0-6_all.deb
 ```
 
 Level announced: **installation and diagnosis validated in a container**, on

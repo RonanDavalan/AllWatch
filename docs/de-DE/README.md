@@ -28,7 +28,7 @@ Handbuchseite in fünf Sprachen. Laden Sie das Paket und `SHA256SUMS` von der
 führen Sie aus:
 
 ```bash
-sudo apt install ./allwatch_0.1.0-4_all.deb
+sudo apt install ./allwatch_0.1.0-6_all.deb
 ```
 
 Angekündigte Stufe: **Installation und Diagnose im Container validiert**, auf
