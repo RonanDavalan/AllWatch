@@ -8,6 +8,8 @@
 
 ![Ayuda de AllWatch](../images/allwatch-help.png)
 
+*El programa muestra el resumen de `--help` en francés, sea cual sea el idioma de esta página.*
+
 AllWatch es un supervisor de procesos minúsculo para Linux, escrito en un
 solo script Bash (unas ciento cincuenta líneas útiles de código). Inicia cada objetivo en primer
 plano, recuerda su PID y juzga su salud solo con lo que dicen el núcleo y la

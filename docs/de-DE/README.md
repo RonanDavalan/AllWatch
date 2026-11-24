@@ -8,6 +8,8 @@
 
 ![AllWatch-Hilfe](../images/allwatch-help.png)
 
+*Das Programm gibt seine `--help`-Zusammenfassung auf Französisch aus, unabhängig von der Sprache dieser Seite.*
+
 AllWatch ist ein winziger Prozess-Supervisor für Linux, geschrieben in einem
 einzigen Bash-Skript (etwa hundertfünfzig nutzbare Zeilen). Er startet jedes Ziel im
 Vordergrund, merkt sich dessen PID und beurteilt seinen Zustand nur anhand
