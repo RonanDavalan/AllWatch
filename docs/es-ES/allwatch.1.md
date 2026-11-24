@@ -57,6 +57,8 @@ La configuración se lee una vez, al arrancar. El archivo por defecto es
 
 Las opciones solo se reconocen como primer argumento.
 
+El texto de `--help` y de los mensajes de error sigue el idioma del sistema: la primera de las variables `LC_ALL`, `LC_MESSAGES` y `LANG` que esté definida. `fr`, `de`, `es` y `zh` están traducidos; cualquier otro valor da inglés. Los eventos del registro y la salida de `--diagnose` no se traducen.
+
 # CONFIGURACIÓN
 
 La configuración se lee una vez, al arrancar, línea por línea. Las líneas

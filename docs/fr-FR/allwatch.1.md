@@ -57,6 +57,8 @@ La configuration est lue une fois au démarrage. Le fichier par défaut est
 
 Les options ne sont reconnues qu'en première position.
 
+Le texte de `--help` et des messages d'erreur suit la langue du système : la première des variables `LC_ALL`, `LC_MESSAGES` et `LANG` qui est définie. `fr`, `de`, `es` et `zh` sont traduits ; toute autre valeur donne l'anglais. Les événements du journal et la sortie de `--diagnose` ne sont pas traduits.
+
 # CONFIGURATION
 
 La configuration est lue une fois, au démarrage, ligne par ligne. Les lignes

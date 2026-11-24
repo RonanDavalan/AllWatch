@@ -2,21 +2,21 @@
 % Ronan Davalan
 % 2026-11-23
 
-# NOM
+# 名称
 
 allwatch - 面向 Linux 的微型进程监控器
 
-# SYNOPSIS
+# 概要
 
-**allwatch** [*CONFIGURATION*]
+**allwatch** [*配置文件*]
 
 **allwatch** **--version**
 
-**allwatch** **--diagnose** [*CONFIGURATION*]
+**allwatch** **--diagnose** [*配置文件*]
 
 **allwatch** **--help**
 
-# DESCRIPTION
+# 描述
 
 **allwatch** 是用 Bash 写成的小型进程监控器。它把每个已配置的目标进程作为子进程启动，
 记住内核分配的 PID，并且只从三个来源判断目标进程的健康：进程仍在 `/proc` 中，
@@ -34,7 +34,7 @@ allwatch - 面向 Linux 的微型进程监控器
 **--help**
 :   输出概要、选项、环境变量和指向本手册页的提示，然后以 `0` 退出。
 
-**--diagnose** [*CONFIGURATION*]
+**--diagnose** [*配置文件*]
 :   读取配置，输出版本、配置路径、运行时目录、日志路径、无响应策略、目标进程数量，
     以及每个已配置目标进程的标识、端口和策略，然后退出。它还报告已存在的运行时目录
     是否为当前用户拥有的目录，以及已存在的日志目录是否可写。它不启动也不探测目标进程，
@@ -45,7 +45,9 @@ allwatch - 面向 Linux 的微型进程监控器
 
 选项只在第一个参数的位置被识别。
 
-# CONFIGURATION
+`--help` 和错误消息的文字遵循系统语言：取 `LC_ALL`、`LC_MESSAGES`、`LANG` 中第一个已设置的变量。`fr`、`de`、`es`、`zh` 已翻译，其他取值显示英语。日志事件和 `--diagnose` 的输出不翻译。
+
+# 配置
 
 配置在启动时逐行读取一次。空行和以 `#` 开头的行会被忽略。
 
@@ -110,7 +112,7 @@ allwatch - 面向 Linux 的微型进程监控器
 （对于 Debian 服务，使用 `touch /run/allwatch/id.stop`）。AllWatch 会移除该文件，
 并且不重启目标进程。该文件本身不会停止正在运行的目标进程。
 
-# ÉTATS
+# 状态
 
 监控器区分四种普通状态，外加一种异常的锁定状态。它没有状态命令：状态通过进程、
 端口和平面日志可见。
@@ -139,7 +141,7 @@ allwatch - 面向 Linux 的微型进程监控器
     记录告警并移除 PID 文件。其他目标进程继续。锁定持续到监控器重启；
     目标进程不会被自动重试。
 
-# FICHIERS
+# 文件
 
 */tmp/allwatch-runtime*
 :   手动运行的默认运行时目录。它为每个目标进程保存一个 `id.pid` 和一个 `id.fails` 文件；
@@ -169,7 +171,7 @@ allwatch - 面向 Linux 的微型进程监控器
 */usr/lib/systemd/system/allwatch.service*
 :   Debian 软件包安装的 systemd 单元。
 
-# SERVICE
+# 服务
 
 Debian 软件包安装 `allwatch.service`，它以系统用户 `allwatch` 和
 `/etc/allwatch/allwatch.conf` 运行 **allwatch**。使用随附的配置时，服务启动时
@@ -194,7 +196,7 @@ Debian 软件包安装 `allwatch.service`，它以系统用户 `allwatch` 和
 
 Fedora 和 openSUSE Leap 的 `.rpm` 软件包以及 Arch Linux 的软件包会把相同的服务单元、配置和程序安装到相同的路径。它们不会启动服务：请在声明好目标后运行 `systemctl enable --now allwatch`。
 
-# SIGNAUX
+# 信号
 
 **SIGTERM**, **SIGINT**
 :   监控器向仍存在的每个目标进程发送 `SIGTERM`，等待约 5 秒让其退出，必要时发送
@@ -217,7 +219,7 @@ Fedora 和 openSUSE Leap 的 `.rpm` 软件包以及 Arch Linux 的软件包会�
     并在单元停止时移除 `/run/allwatch`，因此下一个监控器可能没有 PID 文件，
     并可能启动重复实例。不要依赖 `SIGKILL` 后的接管。
 
-# CODE DE SORTIE
+# 退出状态
 
 **0**
 :   由 `--version`、`--help` 和成功的 `--diagnose` 返回。监督循环不会自行终止：
@@ -237,7 +239,7 @@ Fedora 和 openSUSE Leap 的 `.rpm` 软件包以及 Arch Linux 的软件包会�
 目标进程的退出码被监控器用来应用策略，但不会作为监控器的退出状态返回。
 shell 或系统工具的其他致命失败会返回该命令的非零状态，通常是 `1`。
 
-# EXEMPLES
+# 示例
 
 使用源代码仓库中的示例配置运行监控器：
 
@@ -276,7 +278,7 @@ shell 或系统工具的其他致命失败会返回该命令的非零状态，�
 
     sudo -u allwatch touch /run/allwatch/demo.stop
 
-# LIMITES
+# 限制
 
 - 配置不支持热重载。
 - 不解析应用程序日志来决定是否重启。
@@ -308,11 +310,11 @@ shell 或系统工具的其他致命失败会返回该命令的非零状态，�
 - 配置是受信任的输入：目标进程的命令以服务用户的权限运行。请保护
   `/etc/allwatch/allwatch.conf`，防止非 root 写入者修改。AllWatch 不对目标进程做沙箱隔离。
 
-# VOIR AUSSI
+# 另请参阅
 
 **bash**(1), **systemctl**(1), **journalctl**(1), **systemd.service**(5),
 **systemd.exec**(5), **proc**(5), **timeout**(1)
 
-# LICENCE
+# 许可证
 
 MIT。Copyright (c) 2026 Ronan Davalan。参见 `/usr/share/doc/allwatch/LICENSE`。

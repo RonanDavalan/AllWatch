@@ -59,6 +59,8 @@ Die Konfiguration wird beim Start einmal gelesen. Standard ist
 
 Die Optionen werden nur als erstes Argument erkannt.
 
+Der Text von `--help` und der Fehlermeldungen folgt der Sprache des Systems: die erste gesetzte der Variablen `LC_ALL`, `LC_MESSAGES` und `LANG`. Übersetzt sind `fr`, `de`, `es` und `zh`; jeder andere Wert ergibt Englisch. Die Ereignisse im Journal und die Ausgabe von `--diagnose` werden nicht übersetzt.
+
 # KONFIGURATION
 
 Die Konfiguration wird beim Start einmal zeilenweise gelesen. Leere Zeilen

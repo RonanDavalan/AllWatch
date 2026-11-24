@@ -14,6 +14,8 @@ Les lignes du journal sont `date id événement`. Les événements sont `DEMARRA
 
 ## Le service ne démarre pas
 
+Le programme écrit ces messages dans la langue du système (`LC_ALL`, `LC_MESSAGES` ou `LANG`) ; l'anglais est la langue par défaut.
+
 - `allwatch: configuration illisible : /etc/allwatch/allwatch.conf` — le fichier manque ou n'est pas lisible par l'utilisateur du service. Vérifiez `sudo -u allwatch test -r /etc/allwatch/allwatch.conf` et `sudo systemctl cat allwatch`.
 - `allwatch: /run/allwatch n'appartient pas à l'utilisateur` — le répertoire d'exécution appartient à un autre utilisateur. Vérifiez `ls -ld /run/allwatch /var/lib/allwatch` ; l'unité les crée pour `allwatch`. Si vous avez ajouté un drop-in avec un autre `User=`, corrigez la propriété ou retirez le drop-in.
 - `status=203/EXEC` — le programme manque ou n'est pas exécutable. Réinstallez le paquet.

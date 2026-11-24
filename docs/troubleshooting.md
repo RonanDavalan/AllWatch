@@ -14,8 +14,10 @@ The log lines are `date id event`. The events are `DEMARRAGE`, `DEMARRE`, `ADOPT
 
 ## The service does not start
 
-- `allwatch: configuration illisible : /etc/allwatch/allwatch.conf` — the file is missing or not readable by the service user. Check `sudo -u allwatch test -r /etc/allwatch/allwatch.conf` and `sudo systemctl cat allwatch`.
-- `allwatch: /run/allwatch n'appartient pas à l'utilisateur` — the runtime directory is owned by another user. Check `ls -ld /run/allwatch /var/lib/allwatch`; the unit creates them as `allwatch`. If you added a drop-in with another `User=`, fix the ownership or remove the drop-in.
+The program writes these messages in the language of the system (`LC_ALL`, `LC_MESSAGES` or `LANG`); English is the default.
+
+- `allwatch: cannot read configuration: /etc/allwatch/allwatch.conf` — the file is missing or not readable by the service user. Check `sudo -u allwatch test -r /etc/allwatch/allwatch.conf` and `sudo systemctl cat allwatch`.
+- `allwatch: /run/allwatch is not owned by the current user` — the runtime directory is owned by another user. Check `ls -ld /run/allwatch /var/lib/allwatch`; the unit creates them as `allwatch`. If you added a drop-in with another `User=`, fix the ownership or remove the drop-in.
 - `status=203/EXEC` — the program is missing or not executable. Reinstall the package.
 - `status=1/FAILURE` with a configuration error — run `--diagnose` as the service user (see below).
 

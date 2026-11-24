@@ -6,12 +6,12 @@
 
 [English](../../README.md) | [Français](../fr-FR/README.md) | [Deutsch](../de-DE/README.md) | [Español](README.md) | [中文](../zh-CN/README.md)
 
-![Ayuda de AllWatch](../images/allwatch-help.png)
+![Ayuda de AllWatch](../images/allwatch-help-es.png)
 
-*El programa muestra el resumen de `--help` en francés, sea cual sea el idioma de esta página.*
+*El programa muestra el resumen de `--help` en el idioma del sistema: inglés por defecto, con `fr`, `de`, `es` y `zh` traducidos.*
 
 AllWatch es un supervisor de procesos minúsculo para Linux, escrito en un
-solo script Bash (unas ciento cincuenta líneas útiles de código). Inicia cada objetivo en primer
+solo script Bash (unas ciento setenta líneas útiles de código). Inicia cada objetivo en primer
 plano, recuerda su PID y juzga su salud solo con lo que dicen el núcleo y la
 red: ¿el proceso sigue en `/proc`, su puerto TCP sigue aceptando una conexión
 y qué código de salida dejó? Reinicia el objetivo según una política por

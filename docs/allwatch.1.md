@@ -56,6 +56,8 @@ the current directory; the first argument replaces it.
 
 The options are recognized only as the first argument.
 
+The text of `--help` and of the error messages follows the language of the system: the first of `LC_ALL`, `LC_MESSAGES` and `LANG` that is set. `fr`, `de`, `es` and `zh` are translated; every other value gives English. The log events and the output of `--diagnose` are not translated.
+
 # CONFIGURATION
 
 The configuration is read once, at startup, line by line. Empty lines and

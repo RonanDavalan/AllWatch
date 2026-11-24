@@ -16,10 +16,27 @@ set -euo pipefail
 # --- Bloc 1 : constantes et configuration ---
 VERSION="0.1.0"
 MODE="run"
+# Messages de l'aide et des erreurs : langue de LC_ALL, sinon LC_MESSAGES, sinon LANG ; anglais par défaut. @ marque la valeur insérée.
+case "${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}" in
+  fr*)
+    HELP='Usage : allwatch [CONFIGURATION]\n        allwatch --version\n        allwatch --diagnose [CONFIGURATION]\n        allwatch --help\n\nAllWatch supervise des cibles au premier plan : noyau (/proc), port TCP et code de sortie.\nOptions : --version ; --diagnose [CONF] (lecture sans lancement) ; --help.\nVariables : ALLWATCH_RUNTIME (état) ; XDG_STATE_HOME (journal).\nConfiguration : ON_FREEZE=restart|alert (cible gelée : neutralisée et relancée, ou signalée sans signal). Voir allwatch(1).\n'
+    E_CONF="configuration illisible : @" E_FREEZE="ON_FREEZE vaut restart ou alert, pas '@'" E_OWNER="@ n'appartient pas à l'utilisateur" ;;
+  de*)
+    HELP='Verwendung: allwatch [KONFIGURATION]\n            allwatch --version\n            allwatch --diagnose [KONFIGURATION]\n            allwatch --help\n\nAllWatch überwacht Ziele im Vordergrund: Kernel (/proc), TCP-Port und Exit-Code.\nOptionen: --version; --diagnose [KONF] (Prüfung ohne Start); --help.\nVariablen: ALLWATCH_RUNTIME (Zustand); XDG_STATE_HOME (Journal).\nKonfiguration: ON_FREEZE=restart|alert (hängendes Ziel: neutralisiert und neu gestartet, oder ohne Signal gemeldet). Siehe allwatch(1).\n'
+    E_CONF="Konfiguration nicht lesbar: @" E_FREEZE="ON_FREEZE muss restart oder alert sein, nicht '@'" E_OWNER="@ gehört nicht dem aktuellen Benutzer" ;;
+  es*)
+    HELP='Uso: allwatch [CONFIGURACIÓN]\n     allwatch --version\n     allwatch --diagnose [CONFIGURACIÓN]\n     allwatch --help\n\nAllWatch supervisa objetivos en primer plano: núcleo (/proc), puerto TCP y código de salida.\nOpciones: --version; --diagnose [CONF] (comprobación sin lanzar nada); --help.\nVariables: ALLWATCH_RUNTIME (estado); XDG_STATE_HOME (registro).\nConfiguración: ON_FREEZE=restart|alert (objetivo congelado: neutralizado y reiniciado, o señalado sin enviar señal). Véase allwatch(1).\n'
+    E_CONF="configuración ilegible: @" E_FREEZE="ON_FREEZE debe ser restart o alert, no '@'" E_OWNER="@ no pertenece al usuario actual" ;;
+  zh*)
+    HELP='用法：allwatch [配置文件]\n      allwatch --version\n      allwatch --diagnose [配置文件]\n      allwatch --help\n\nAllWatch 在前台监视目标进程：内核（/proc）、TCP 端口和退出码。\n选项：--version；--diagnose [配置文件]（只检查，不启动目标进程）；--help。\n变量：ALLWATCH_RUNTIME（状态）；XDG_STATE_HOME（日志）。\n配置：ON_FREEZE=restart|alert（目标进程无响应：中和后重启，或不发信号只记录）。参见 allwatch(1)。\n'
+    E_CONF="无法读取配置文件：@" E_FREEZE="ON_FREEZE 必须是 restart 或 alert，而不是 '@'" E_OWNER="@ 不属于当前用户" ;;
+  *)
+    HELP='Usage: allwatch [CONFIGURATION]\n       allwatch --version\n       allwatch --diagnose [CONFIGURATION]\n       allwatch --help\n\nAllWatch supervises foreground targets: kernel (/proc), TCP port and exit code.\nOptions: --version; --diagnose [CONF] (read-only check, nothing is started); --help.\nVariables: ALLWATCH_RUNTIME (state); XDG_STATE_HOME (log).\nConfiguration: ON_FREEZE=restart|alert (frozen target: neutralized and restarted, or reported without a signal). See allwatch(1).\n'
+    E_CONF="cannot read configuration: @" E_FREEZE="ON_FREEZE must be restart or alert, not '@'" E_OWNER="@ is not owned by the current user" ;;
+esac
 case "${1:-}" in
   --version) printf 'allwatch %s\n' "$VERSION"; exit 0 ;;
-  --help) printf 'Usage : allwatch [CONFIGURATION]\n        allwatch --version\n        allwatch --diagnose [CONFIGURATION]\n        allwatch --help\n\nAllWatch supervise des cibles au premier plan : noyau (/proc), port TCP et code de sortie.\nOptions : --version ; --diagnose [CONF] (lecture sans lancement) ; --help.\nVariables : ALLWATCH_RUNTIME (état) ; XDG_STATE_HOME (journal).\nConfiguration : ON_FREEZE=restart|alert (cible gelée : neutralisée et relancée, ou signalée sans signal). Voir allwatch(1).\n'
-    exit 0 ;;
+  --help) printf '%b' "$HELP"; exit 0 ;;
   --diagnose) MODE="diagnose"; shift ;;
 esac
 CONF="${1:-allwatch.conf}"
@@ -29,7 +46,7 @@ POLL_SECONDS=5 PROBE_TIMEOUT=3 MAX_RESTARTS=5 RESTART_WINDOW=60 ON_FREEZE=restar
 declare -A PORT POL CMD FIN SUSPECT CHILD GEL
 IDS=()
 
-[ -r "$CONF" ] || { echo "allwatch: configuration illisible : $CONF" >&2; exit 1; }
+[ -r "$CONF" ] || { echo "allwatch: ${E_CONF/@/"$CONF"}" >&2; exit 1; }
 while read -r id port pol cmd || [ -n "$id" ]; do
   case "$id" in
     '' | '#'*) continue ;;
@@ -40,7 +57,7 @@ while read -r id port pol cmd || [ -n "$id" ]; do
   FIN[$id]=0; SUSPECT[$id]=0; CHILD[$id]=0; GEL[$id]=0
 done <"$CONF"
 # Une faute de frappe ne doit jamais décider seule de tuer ou d'épargner une cible gelée.
-case "$ON_FREEZE" in restart | alert) ;; *) echo "allwatch: ON_FREEZE vaut restart ou alert, pas '$ON_FREEZE'" >&2; exit 1 ;; esac
+case "$ON_FREEZE" in restart | alert) ;; *) echo "allwatch: ${E_FREEZE/@/"$ON_FREEZE"}" >&2; exit 1 ;; esac
 # Deux sondes en échec au moins avant de neutraliser : un ralentissement passager n'en coûte pas une.
 GRACE=$((2 * POLL_SECONDS))
 
@@ -87,7 +104,7 @@ fi
 # Un répertoire d'état qui n'est pas à nous laisserait un tiers dicter les PID que nous tuons.
 # shellcheck disable=SC2174 # -m vise les deux dossiers nommés ; leurs parents gardent le masque par défaut.
 mkdir -p -m 700 "$RT" "${LOG%/*}"
-[ -O "$RT" ] || { echo "allwatch: $RT n'appartient pas à l'utilisateur" >&2; exit 1; }
+[ -O "$RT" ] || { echo "allwatch: ${E_OWNER/@/"$RT"}" >&2; exit 1; }
 
 # --- Bloc 2 : primitives d'inspection ---
 journal() { printf '%s %s %s\n' "$(date -Iseconds)" "$1" "$2" >>"$LOG"; }

@@ -17,9 +17,11 @@ sudo tail -n 50 /var/lib/allwatch/allwatch/allwatch.log
 
 ## 服务没有启动
 
-- `allwatch: configuration illisible : /etc/allwatch/allwatch.conf`——文件缺失或服务用户无法读取。
+程序按系统语言（`LC_ALL`、`LC_MESSAGES` 或 `LANG`）输出这些消息；默认语言为英语。
+
+- `allwatch: 无法读取配置文件：/etc/allwatch/allwatch.conf`——文件缺失或服务用户无法读取。
   请检查 `sudo -u allwatch test -r /etc/allwatch/allwatch.conf` 和 `sudo systemctl cat allwatch`。
-- `allwatch: /run/allwatch n'appartient pas à l'utilisateur`——运行时目录属于另一个用户。
+- `allwatch: /run/allwatch 不属于当前用户`——运行时目录属于另一个用户。
   请检查 `ls -ld /run/allwatch /var/lib/allwatch`；单元以 `allwatch` 身份创建它们。
   如果你添加了使用另一个 `User=` 的 drop-in，请修正所有权或移除该 drop-in。
 - `status=203/EXEC`——程序缺失或不可执行。请重新安装软件包。

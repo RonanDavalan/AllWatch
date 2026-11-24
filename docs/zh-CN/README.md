@@ -6,11 +6,11 @@
 
 [English](../../README.md) | [Français](../fr-FR/README.md) | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md) | [中文](README.md)
 
-![AllWatch 帮助输出](../images/allwatch-help.png)
+![AllWatch 帮助输出](../images/allwatch-help-zh.png)
 
-*程序的 `--help` 摘要始终以法语输出，与本页语言无关。*
+*程序按系统语言输出 `--help` 摘要：默认英语，已翻译 `fr`、`de`、`es` 和 `zh`。*
 
-AllWatch 是面向 Linux 的微型进程监控器，由一个 Bash 脚本写成（约一百五十行有效代码）。
+AllWatch 是面向 Linux 的微型进程监控器，由一个 Bash 脚本写成（约一百七十行有效代码）。
 它让每个目标进程在前台启动，记住其 PID，只依据内核和网络给出的事实判断其健康：
 进程是否仍在 `/proc` 中，其 TCP 端口是否仍接受连接，以及它结束时留下什么退出码。
 它按每个目标进程的策略重启目标，并拒绝在一个刚启动就死亡的进程上无限循环。

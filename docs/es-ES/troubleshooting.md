@@ -14,8 +14,10 @@ Las líneas del registro son `fecha id evento`. Los eventos son `DEMARRAGE`, `DE
 
 ## El servicio no arranca
 
-- `allwatch: configuration illisible : /etc/allwatch/allwatch.conf` — falta el archivo o el usuario del servicio no puede leerlo. Compruebe `sudo -u allwatch test -r /etc/allwatch/allwatch.conf` y `sudo systemctl cat allwatch`.
-- `allwatch: /run/allwatch n'appartient pas à l'utilisateur` — el directorio de ejecución pertenece a otro usuario. Compruebe `ls -ld /run/allwatch /var/lib/allwatch`; la unidad los crea para `allwatch`. Si añadió un drop-in con otro `User=`, corrija la propiedad o retire el drop-in.
+El programa escribe estos mensajes en el idioma del sistema (`LC_ALL`, `LC_MESSAGES` o `LANG`); el inglés es el idioma por defecto.
+
+- `allwatch: configuración ilegible: /etc/allwatch/allwatch.conf` — falta el archivo o el usuario del servicio no puede leerlo. Compruebe `sudo -u allwatch test -r /etc/allwatch/allwatch.conf` y `sudo systemctl cat allwatch`.
+- `allwatch: /run/allwatch no pertenece al usuario actual` — el directorio de ejecución pertenece a otro usuario. Compruebe `ls -ld /run/allwatch /var/lib/allwatch`; la unidad los crea para `allwatch`. Si añadió un drop-in con otro `User=`, corrija la propiedad o retire el drop-in.
 - `status=203/EXEC` — falta el programa o no es ejecutable. Reinstale el paquete.
 - `status=1/FAILURE` con un error de configuración — ejecute `--diagnose` como usuario del servicio (véase abajo).
 

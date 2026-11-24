@@ -6,10 +6,12 @@
 
 [English](../../README.md) | [Français](README.md) | [Deutsch](../de-DE/README.md) | [Español](../es-ES/README.md) | [中文](../zh-CN/README.md)
 
-![Aide d'AllWatch](../images/allwatch-help.png)
+![Aide d'AllWatch](../images/allwatch-help-fr.png)
+
+*Le programme affiche le résumé de `--help` dans la langue du système : anglais par défaut, avec `fr`, `de`, `es` et `zh` traduits.*
 
 AllWatch est un micro-superviseur de processus pour Linux, écrit dans un seul
-script Bash (environ cent cinquante lignes utiles de code). Il lance chaque
+script Bash (environ cent soixante-dix lignes utiles de code). Il lance chaque
 cible au premier plan, mémorise son PID et juge sa santé uniquement à partir de
 ce que disent le noyau et le réseau : le processus est-il toujours dans
 `/proc`, son port TCP accepte-t-il encore une connexion, et quel code de sortie
